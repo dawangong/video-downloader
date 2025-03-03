@@ -4,6 +4,7 @@ export default [
     component: () => import('../pages/setting/Setting'),
     options: {
       title: '设置页',
+      headerShown: false,
     },
   },
   {
