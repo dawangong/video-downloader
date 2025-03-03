@@ -10,6 +10,7 @@ const StackNavigator = () => {
     <Stack.Navigator
       initialRouteName="Tabs"
       screenOptions={{
+        headerTitle: 'video-downloader',
         // 配置通用的顶部导航栏
         headerStyle: {
           backgroundColor: '#007bff', // 设置导航栏背景颜色

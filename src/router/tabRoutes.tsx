@@ -1,3 +1,5 @@
+import {Icon} from '@ant-design/react-native';
+
 export default [
   {
     name: 'Add',
@@ -5,6 +7,9 @@ export default [
     options: {
       tabBarLabel: '新增',
       headerShown: false,
+      tabBarIcon: ({focused, color, size}) => (
+        <Icon name="plus" color={focused ? '#007bff' : color} size={size} />
+      ),
     },
   },
   {
@@ -13,6 +18,9 @@ export default [
     options: {
       tabBarLabel: '下载',
       headerShown: false,
+      tabBarIcon: ({ focused, color, size }) => (
+        <Icon name="download" color={focused ? '#007bff' : color} size={size} />
+      ),
     },
   },
 ];
