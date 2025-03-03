@@ -1,4 +1,7 @@
 {
   "name": "videoDownloader",
-  "displayName": "videoDownloader"
+  "displayName": "videoDownloader",
+  "packagerOpts": {
+    "config": "metro.config.js"
+  }
 }
