@@ -25,7 +25,6 @@ const App = (): React.JSX.Element => {
         backgroundColor={backgroundStyle.backgroundColor}
       />
       {/* 使用 SafeAreaView 包裹全局内容 */}
-      {/* eslint-disable-next-line react-native/no-inline-styles */}
       <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
         <NavigationContainer>
           <StackNavigator />

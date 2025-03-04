@@ -17,8 +17,6 @@ const TabNavigator = () => {
         tabBarStyle: {
           height: tabBarHeight,
         },
-        tabBarLabelStyle: {fontSize: 16}, // 设置 Tab 标签文字样式
-        tabBarItemStyle: {},
       }}>
       {tabRoutes.map((route, index) => (
         <Tab.Screen

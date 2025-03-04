@@ -1,5 +1,5 @@
 enum Colors {
-  primary = 'red',
+  primary = '#80bef5',
 }
 
 export default Colors;
