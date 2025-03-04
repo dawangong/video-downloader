@@ -1,13 +1,6 @@
 import React from 'react';
 import type {PropsWithChildren} from 'react';
-import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import {ScrollView, StyleSheet, Text, useColorScheme, View} from 'react-native';
 
 import {
   Colors,
@@ -16,7 +9,7 @@ import {
   LearnMoreLinks,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
-import useGlobalStore from '../../stores/globalStore';
+import useGlobalStore from '@/stores/globalStore';
 
 const styles = StyleSheet.create({
   sectionContainer: {
@@ -79,10 +72,6 @@ const AddTask = (): React.JSX.Element => {
 
   return (
     <View style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
       <ScrollView style={backgroundStyle}>
         <View style={{paddingRight: safePadding}}>
           <Header />

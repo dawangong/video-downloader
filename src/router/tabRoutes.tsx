@@ -1,4 +1,5 @@
 import {Icon} from '@ant-design/react-native';
+import Colors from '@/constants/colors';
 
 export default [
   {
@@ -8,7 +9,11 @@ export default [
       tabBarLabel: '新增',
       headerShown: false,
       tabBarIcon: ({focused, color, size}) => (
-        <Icon name="plus" color={focused ? '#007bff' : color} size={size} />
+        <Icon
+          name="plus"
+          color={focused ? Colors.primary : color}
+          size={size}
+        />
       ),
     },
   },
@@ -18,8 +23,12 @@ export default [
     options: {
       tabBarLabel: '下载',
       headerShown: false,
-      tabBarIcon: ({ focused, color, size }) => (
-        <Icon name="download" color={focused ? '#007bff' : color} size={size} />
+      tabBarIcon: ({focused, color, size}) => (
+        <Icon
+          name="download"
+          color={focused ? Colors.primary : color}
+          size={size}
+        />
       ),
     },
   },
