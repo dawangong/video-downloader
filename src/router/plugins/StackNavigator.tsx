@@ -2,7 +2,7 @@ import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import TabNavigator from './TabNavigator'; // 引入底部标签导航器
 import stackRoutes from '../stackRoutes'; // 引入动态路由配置
-import Colors from '@/constants/colors';
+import MyColors from '@/constants/colors';
 import {Dimensions} from 'react-native';
 
 const {height} = Dimensions.get('window');
@@ -20,7 +20,7 @@ const StackNavigator = () => {
         headerTitle: 'VDownloader',
         // 配置通用的顶部导航栏
         headerStyle: {
-          backgroundColor: Colors.primary, // 设置导航栏背景颜色
+          backgroundColor: MyColors.primary, // 设置导航栏背景颜色
           height: headerHeight,
         },
         headerTintColor: '#fff', // 设置导航栏文字颜色

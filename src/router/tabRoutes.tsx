@@ -1,6 +1,6 @@
 import {Icon} from '@ant-design/react-native';
 import {Text} from 'react-native';
-import Colors from '@/constants/colors';
+import MyMyColors from '@/constants/colors';
 
 export default [
   {
@@ -12,7 +12,7 @@ export default [
           style={
             props.focused
               ? {
-                  color: Colors.primary,
+                  color: MyMyColors.primary,
                   fontSize: 15,
                 }
               : {
@@ -27,7 +27,7 @@ export default [
       tabBarIcon: (props: any) => (
         <Icon
           name="plus-circle"
-          color={props.focused ? Colors.primary : props.color}
+          color={props.focused ? MyMyColors.primary : props.color}
           size={props.size}
         />
       ),
@@ -42,7 +42,7 @@ export default [
           style={
             props.focused
               ? {
-                  color: Colors.primary,
+                  color: MyMyColors.primary,
                   fontSize: 15,
                 }
               : {
@@ -57,7 +57,7 @@ export default [
       tabBarIcon: (props: any) => (
         <Icon
           name="download"
-          color={props.focused ? Colors.primary : props.color}
+          color={props.focused ? MyMyColors.primary : props.color}
           size={props.size}
         />
       ),
@@ -72,7 +72,7 @@ export default [
           style={
             props.focused
               ? {
-                  color: Colors.primary,
+                  color: MyMyColors.primary,
                   fontSize: 15,
                 }
               : {
@@ -87,7 +87,7 @@ export default [
       tabBarIcon: (props: any) => (
         <Icon
           name="file-sync"
-          color={props.focused ? Colors.primary : props.color}
+          color={props.focused ? MyMyColors.primary : props.color}
           size={props.size}
         />
       ),
