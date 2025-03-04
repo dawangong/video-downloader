@@ -1,5 +1,5 @@
-import {Icon} from '@ant-design/react-native';
-import {Text} from 'react-native';
+import { Icon } from '@ant-design/react-native';
+import { Text } from 'react-native';
 import MyMyColors from '@/constants/colors';
 
 export default [

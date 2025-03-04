@@ -1,9 +1,10 @@
 import React from 'react';
-import {StyleSheet, useColorScheme, View, Text} from 'react-native';
+import { StyleSheet, useColorScheme, View, Text } from 'react-native';
 
-import {Colors} from 'react-native/Libraries/NewAppScreen';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 import MyColors from '@/constants/colors';
 import useGlobalStore from '@/stores/globalStore';
+import { Header } from '@/components/index';
 
 const styles = StyleSheet.create({
   body: {
@@ -13,6 +14,10 @@ const styles = StyleSheet.create({
   footer: {
     color: MyColors.gray,
   },
+  wrapper: {
+    padding: 6,
+    flex: 1,
+  },
 });
 
 const AddTask = (): React.JSX.Element => {
@@ -21,17 +26,19 @@ const AddTask = (): React.JSX.Element => {
   const pageStyle = {
     flex: 1,
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-    padding: 6,
   };
 
-  const {dir} = useGlobalStore();
+  const { dir } = useGlobalStore();
 
   return (
     <View style={pageStyle}>
-      <View style={styles.body}>
-        <Text>测试</Text>
+      <Header showSetting />
+      <View style={styles.wrapper}>
+        <View style={styles.body}>
+          <Text>测试</Text>
+        </View>
+        <Text style={styles.footer}>保存至：{dir}</Text>
       </View>
-      <Text style={styles.footer}>保存至：{dir}</Text>
     </View>
   );
 };
