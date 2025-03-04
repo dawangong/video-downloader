@@ -31,9 +31,9 @@ interface Props {
 
 const Header = (props: Props) => {
   const { showSetting = false } = props;
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
+
   const onPress = () => {
-    console.log(111);
     navigation.navigate('Setting');
   };
 

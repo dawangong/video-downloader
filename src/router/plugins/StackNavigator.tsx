@@ -10,17 +10,6 @@ const StackNavigator = () => {
     <Stack.Navigator
       initialRouteName="Tabs"
       screenOptions={{
-        // headerTitle: 'VDownloader',
-        // // 配置通用的顶部导航栏
-        // headerStyle: {
-        //   backgroundColor: MyColors.primary, // 设置导航栏背景颜色
-        //   height: headerHeight,
-        // },
-        // headerTintColor: '#fff', // 设置导航栏文字颜色
-        // headerTitleStyle: {
-        //   fontWeight: 'bold', // 设置标题样式
-        // },
-        // headerTitleAlign: 'left',
         headerShown: false, // 默认显示导航栏
       }}>
       {/* 添加底部标签导航器 */}
