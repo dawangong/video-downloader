@@ -1,6 +1,7 @@
 enum MyColors {
-  primary = '#80bef5',
-  gray = '#999',
+  primary = '#a66ffe',
+  black = '#010101',
+  gray = '#999999',
 }
 
 export default MyColors;

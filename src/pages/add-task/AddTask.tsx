@@ -8,6 +8,7 @@ import useGlobalStore from '@/stores/globalStore';
 const styles = StyleSheet.create({
   body: {
     flex: 1,
+    color: MyColors.black,
   },
   footer: {
     color: MyColors.gray,
