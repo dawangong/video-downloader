@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const VideoList = () => {
+const Template = () => {
   const isDarkMode = useColorScheme() === 'dark';
 
   const pageStyle = {
@@ -26,10 +26,10 @@ const VideoList = () => {
     <View style={pageStyle}>
       <Header model="setting" />
       <View style={styles.wrapper}>
-        <Text>视频页</Text>
+        <Text>Template</Text>
       </View>
     </View>
   );
 };
 
-export default VideoList;
+export default Template;

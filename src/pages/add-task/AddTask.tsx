@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
+import { Input, Button, Toast } from '@ant-design/react-native';
 import { StyleSheet, useColorScheme, View, Text } from 'react-native';
 
-import { Colors } from 'react-native/Libraries/NewAppScreen';
 import MyColors from '@/constants/colors';
-import useGlobalStore from '@/stores/globalStore';
 import { Header } from '@/components/index';
-import { Input, Button, Toast } from '@ant-design/react-native';
 import { validateLink } from '@/utils/tools';
+import useGlobalStore from '@/stores/globalStore';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 const styles = StyleSheet.create({
   body: {
