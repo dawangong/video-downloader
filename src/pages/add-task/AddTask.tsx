@@ -32,7 +32,7 @@ const AddTask = (): React.JSX.Element => {
 
   return (
     <View style={pageStyle}>
-      <Header showSetting />
+      <Header model="setting" />
       <View style={styles.wrapper}>
         <View style={styles.body}>
           <Text>测试</Text>
