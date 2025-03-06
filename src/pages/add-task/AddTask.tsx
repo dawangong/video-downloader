@@ -33,8 +33,8 @@ const styles = StyleSheet.create({
   },
   button: {
     width: 90,
-    height: 30,
-    lineHeight: 30,
+    height: 35,
+    lineHeight: 35,
     marginTop: 20,
     backgroundColor: MyColors.primary,
     borderColor: MyColors.primary,
@@ -57,8 +57,12 @@ const AddTask = (): React.JSX.Element => {
 
   const [isFocused, setIsFocused] = useState(false);
   const [link, setLink] = useState('');
+  const [analySis, setAnalySis] = useState(false);
+  const [fileName, setFileName] = useState('');
 
   const [toastApi, contextHolder] = Toast.useToast();
+
+  const res = true;
 
   return (
     <View style={pageStyle}>
@@ -67,6 +71,7 @@ const AddTask = (): React.JSX.Element => {
       <View style={styles.wrapper}>
         <View style={styles.body}>
           <Input
+            value={link}
             placeholder="请输入mp4或m3u8链接, 直接下载!"
             style={[styles.input, isFocused ? styles.focusedInput : {}]}
             onFocus={() => setIsFocused(true)}
@@ -76,24 +81,68 @@ const AddTask = (): React.JSX.Element => {
               setLink(e.target.value);
             }}
           />
-          <Button
-            disabled={!link}
-            type="primary"
-            style={[styles.button]}
-            activeStyle={styles.buttonActive}
-            onPress={() => {
-              if (validateLink(link)) {
-                console.log('success');
-                //
-              } else {
-                toastApi.show({
-                  content: '请输入mp4或m3u8链接!',
-                  position: 'center',
-                });
-              }
-            }}>
-            下载
-          </Button>
+
+          {analySis && (
+            <>
+              <Input
+                value={fileName}
+                placeholder="请输入文件名称"
+                style={[styles.input, isFocused ? styles.focusedInput : {}]}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                allowClear
+                onChange={(e: any) => {
+                  setLink(e.target.value);
+                }}
+              />
+            </>
+          )}
+          {analySis ? (
+            <Button
+              type="primary"
+              style={[styles.button]}
+              activeStyle={styles.buttonActive}
+              onPress={async () => {
+                setAnalySis(false);
+              }}>
+              取消
+            </Button>
+          ) : (
+            <Button
+              disabled={!link}
+              type="primary"
+              style={[styles.button]}
+              activeStyle={styles.buttonActive}
+              onPress={async () => {
+                if (validateLink(link)) {
+                  const ld = toastApi.loading({
+                    content: '链接解析中...',
+                    duration: 0,
+                  });
+                  await new Promise(resolve => {
+                    setTimeout(() => {
+                      resolve(true);
+                    }, 3000);
+                  });
+                  toastApi.remove(ld);
+                  if (res) {
+                    setAnalySis(true);
+                  } else {
+                    toastApi.fail({
+                      content: '链接解析失败!',
+                      position: 'bottom',
+                    });
+                  }
+                } else {
+                  toastApi.fail({
+                    content: '请输入mp4或m3u8链接!',
+                    position: 'bottom',
+                  });
+                }
+              }}>
+              下载
+            </Button>
+          )}
         </View>
         <Text style={styles.footer}>保存至：{dir}</Text>
       </View>
