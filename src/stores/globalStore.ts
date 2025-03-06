@@ -4,12 +4,13 @@ import { create } from 'zustand';
 interface GlobalState {
   dir: string;
   maxTask: number;
+  changeMaxTask(v: number[]): void;
 }
 
 const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
   dir: '/v-downloader',
   maxTask: 3,
-  changeMaxTask: (v: number[]) =>
+  changeMaxTask: v =>
     set(() => ({
       maxTask: [v[0]],
     })),

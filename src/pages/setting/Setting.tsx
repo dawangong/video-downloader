@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
-import { StyleSheet, useColorScheme, View, Text } from 'react-native';
+import {
+  StyleSheet,
+  useColorScheme,
+  View,
+  Text,
+  ScrollView,
+} from 'react-native';
 import { List, PickerView } from '@ant-design/react-native';
-import { Dialog, Provider } from 'react-native-paper';
+import { Dialog, Provider, Button } from 'react-native-paper';
 
 import { Header } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
@@ -34,6 +40,7 @@ const Setting = () => {
   const { dir, maxTask, changeMaxTask } = useGlobalStore();
   const [showSaveDir, setShowSaveDir] = useState(false);
   const [showTaskLimit, setShowTaskLimit] = useState(false);
+  const [showProtocol, setShowProtocol] = useState(false);
 
   return (
     <Provider>
@@ -59,7 +66,12 @@ const Setting = () => {
             </Item>
           </List>
           <List renderHeader="其他">
-            <Item style={itemStyle} extra="不进行任何采集">
+            <Item
+              style={itemStyle}
+              extra="查看"
+              onPress={() => {
+                setShowProtocol(true);
+              }}>
               隐私政策
             </Item>
             <Item style={itemStyle} extra="v1.0.0">
@@ -100,6 +112,36 @@ const Setting = () => {
               cascade={false}
             />
           </Dialog.Content>
+        </Dialog>
+        <Dialog visible={showProtocol} onDismiss={() => setShowProtocol(false)}>
+          <Dialog.Title>隐私政策</Dialog.Title>
+          <Dialog.ScrollArea style={{ maxHeight: 300 }}>
+            <ScrollView contentContainerStyle={{ paddingHorizontal: 0 }}>
+              <Text>
+                This is a scrollable area This is a scrollable area This is a
+                scrollable area This is a scrollable area This is a scrollable
+                area This is a scrollable area This is a scrollable area This is
+                a scrollable areaThis is a scrollable area This is a scrollable
+                area This is a scrollable area This is a scrollable areaThis is
+                a scrollable area This is a scrollable area This is a scrollable
+                area This is a scrollable areaThis is a scrollable area This is
+                a scrollable area This is a scrollable area This is a scrollable
+                areaThis is a scrollable area This is a scrollable area This is
+                a scrollable area This is a scrollable areaThis is a scrollable
+                area This is a scrollable area This is a scrollable area This is
+                a scrollable areaThis is a scrollable area This is a scrollable
+                area This is a scrollable area This is a scrollable areaThis is
+                a scrollable area This is a scrollable area This is a scrollable
+                area This is a scrollable areaThis is a scrollable area This is
+                a scrollable area This is a scrollable area This is a scrollable
+                areaThis is a scrollable area This is a scrollable area This is
+                a scrollable area This is a scrollable area
+              </Text>
+            </ScrollView>
+          </Dialog.ScrollArea>
+          <Button style={{ bottom: 15 }} onPress={() => setShowProtocol(false)}>
+            知道了
+          </Button>
         </Dialog>
       </View>
     </Provider>
