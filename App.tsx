@@ -5,17 +5,23 @@
  * @format
  */
 import 'react-native-gesture-handler'; // 确保在顶部引入
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import StackNavigator from './src/router/plugins/StackNavigator';
 import { SafeAreaView, StatusBar, useColorScheme } from 'react-native'; // 导入需要的组件
 import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { requestStoragePermission } from '@/utils/permission';
 
 const App = (): React.JSX.Element => {
   const isDarkMode = useColorScheme() === 'dark';
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+
+  // 在应用启动时调用
+  useEffect(() => {
+    requestStoragePermission();
+  }, []);
 
   return (
     <>

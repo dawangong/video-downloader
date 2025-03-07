@@ -1,9 +1,15 @@
+def node_require(script)
+  require Pod::Executable.execute_command('node', ['-p', "require.resolve('#{script}', {paths: [process.argv[1]]})", __dir__]).strip
+end
+
 # Resolve react_native_pods.rb with node to allow for hoisting
-require Pod::Executable.execute_command('node', ['-p',
-  'require.resolve(
-    "react-native/scripts/react_native_pods.rb",
-    {paths: [process.argv[1]]},
-  )', __dir__]).strip
+node_require('react-native/scripts/react_native_pods.rb')
+
+# Resolve native-modules with node to allow for hoisting
+node_require('@react-native-community/cli-platform-ios/native_modules.rb')
+
+# Resolve react-native-permissions with node to allow for hoisting
+node_require('react-native-permissions/scripts/setup.rb')
 
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
@@ -22,6 +28,13 @@ target 'videoDownloader' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
+  
+  setup_permissions([
+    'Camera',           # 相机权限
+    'Microphone',       # 麦克风权限
+    'PhotoLibrary',     # 照片权限（访问照片库）
+    'LocationWhenInUse' # 位置权限（仅在使用时获取位置）
+  ])
 
   post_install do |installer|
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
