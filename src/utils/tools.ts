@@ -12,3 +12,11 @@ export const validateLink = (link: string) => {
   }
   return true;
 };
+
+export const mockApi = (duration: number) => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(true);
+    }, duration * 1000);
+  });
+};

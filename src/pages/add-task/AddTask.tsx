@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Input, Button, Toast } from '@ant-design/react-native';
+import { Input, Button, Toast, WingBlank } from '@ant-design/react-native';
 import { StyleSheet, useColorScheme, View, Text } from 'react-native';
 
 import MyColors from '@/constants/colors';
 import { Header } from '@/components/index';
-import { validateLink } from '@/utils/tools';
+import { validateLink, mockApi } from '@/utils/tools';
 import useGlobalStore from '@/stores/globalStore';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 
@@ -43,6 +43,18 @@ const styles = StyleSheet.create({
     backgroundColor: MyColors.primary,
     borderColor: MyColors.primary,
   },
+  cButton: {
+    width: 90,
+    height: 35,
+    lineHeight: 35,
+    marginTop: 20,
+    backgroundColor: MyColors.primary05,
+    borderColor: MyColors.zero,
+  },
+  cButtonActive: {
+    backgroundColor: MyColors.primary05,
+    borderColor: MyColors.zero,
+  },
 });
 
 const AddTask = (): React.JSX.Element => {
@@ -56,7 +68,7 @@ const AddTask = (): React.JSX.Element => {
   const { dir } = useGlobalStore();
 
   const [isFocused, setIsFocused] = useState(false);
-  const [link, setLink] = useState('');
+  const [fileLink, setFileLink] = useState('');
   const [analySis, setAnalySis] = useState(false);
   const [fileName, setFileName] = useState('');
 
@@ -71,59 +83,96 @@ const AddTask = (): React.JSX.Element => {
       <View style={styles.wrapper}>
         <View style={styles.body}>
           <Input
-            value={link}
+            value={fileLink}
             placeholder="请输入mp4或m3u8链接, 直接下载!"
             style={[styles.input, isFocused ? styles.focusedInput : {}]}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             allowClear
             onChange={(e: any) => {
-              setLink(e.target.value);
+              setFileLink(e.target.value);
             }}
           />
 
-          {analySis && (
+          {analySis ? (
             <>
               <Input
                 value={fileName}
                 placeholder="请输入文件名称"
-                style={[styles.input, isFocused ? styles.focusedInput : {}]}
+                style={[
+                  styles.input,
+                  isFocused ? styles.focusedInput : {},
+                  { marginTop: 20 },
+                ]}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 allowClear
                 onChange={(e: any) => {
-                  setLink(e.target.value);
+                  setFileName(e.target.value);
                 }}
               />
+              <View
+                style={{
+                  flexDirection: 'row',
+                }}>
+                <Button
+                  type="primary"
+                  style={[styles.cButton]}
+                  activeStyle={styles.cButtonActive}
+                  onPress={async () => {
+                    setFileName('');
+                    setAnalySis(false);
+                  }}>
+                  取消
+                </Button>
+                <WingBlank />
+                <Button
+                  type="primary"
+                  style={[styles.button]}
+                  activeStyle={styles.buttonActive}
+                  onPress={async () => {
+                    if (!fileName) {
+                      toastApi.fail({
+                        content: '文件名不能为空!',
+                        position: 'bottom',
+                      });
+                      return false;
+                    }
+
+                    if (!fileLink) {
+                      toastApi.fail({
+                        content: '文件名不能为空!',
+                        position: 'bottom',
+                      });
+                      return false;
+                    }
+
+                    toastApi.success({
+                      content: '新下载任务添加成功!',
+                      position: 'bottom',
+                    });
+
+                    setFileLink('');
+                    setFileName('');
+                    setAnalySis(false);
+                  }}>
+                  下载
+                </Button>
+              </View>
             </>
-          )}
-          {analySis ? (
-            <Button
-              type="primary"
-              style={[styles.button]}
-              activeStyle={styles.buttonActive}
-              onPress={async () => {
-                setAnalySis(false);
-              }}>
-              取消
-            </Button>
           ) : (
             <Button
-              disabled={!link}
+              disabled={!fileLink}
               type="primary"
               style={[styles.button]}
               activeStyle={styles.buttonActive}
               onPress={async () => {
-                if (validateLink(link)) {
+                if (validateLink(fileLink)) {
                   const ld = toastApi.loading({
                     content: '链接解析中...',
                     duration: 0,
                   });
-                  await new Promise(resolve => {
-                    setTimeout(() => {
-                      resolve(true);
-                    }, 3000);
-                  });
+                  await mockApi(3);
                   toastApi.remove(ld);
                   if (res) {
                     setAnalySis(true);
