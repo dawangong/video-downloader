@@ -84,7 +84,7 @@ const AddTask = (): React.JSX.Element => {
         <View style={styles.body}>
           <Input
             value={fileLink}
-            placeholder="请输入mp4或m3u8链接, 直接下载!"
+            placeholder="请输入mp4或m3u8链接, 解析下载"
             style={[styles.input, isFocused ? styles.focusedInput : {}]}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
@@ -133,7 +133,7 @@ const AddTask = (): React.JSX.Element => {
                   onPress={async () => {
                     if (!fileName) {
                       toastApi.fail({
-                        content: '文件名不能为空!',
+                        content: '文件名不能为空',
                         position: 'bottom',
                       });
                       return false;
@@ -141,14 +141,14 @@ const AddTask = (): React.JSX.Element => {
 
                     if (!fileLink) {
                       toastApi.fail({
-                        content: '文件名不能为空!',
+                        content: '文件名不能为空',
                         position: 'bottom',
                       });
                       return false;
                     }
 
                     toastApi.success({
-                      content: '新下载任务添加成功!',
+                      content: '新下载任务添加成功',
                       position: 'bottom',
                     });
 
@@ -178,18 +178,18 @@ const AddTask = (): React.JSX.Element => {
                     setAnalySis(true);
                   } else {
                     toastApi.fail({
-                      content: '链接解析失败!',
+                      content: '链接解析失败',
                       position: 'bottom',
                     });
                   }
                 } else {
                   toastApi.fail({
-                    content: '请输入mp4或m3u8链接!',
+                    content: '请输入mp4或m3u8链接',
                     position: 'bottom',
                   });
                 }
               }}>
-              下载
+              解析
             </Button>
           )}
         </View>
