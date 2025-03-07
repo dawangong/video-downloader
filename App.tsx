@@ -10,7 +10,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import StackNavigator from './src/router/plugins/StackNavigator';
 import { SafeAreaView, StatusBar, useColorScheme } from 'react-native'; // 导入需要的组件
 import { Colors } from 'react-native/Libraries/NewAppScreen';
-import { requestStoragePermission } from '@/utils/permission';
+// import { requestStoragePermission } from '@/utils/permission';
 
 const App = (): React.JSX.Element => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -20,7 +20,7 @@ const App = (): React.JSX.Element => {
 
   // 在应用启动时调用
   useEffect(() => {
-    requestStoragePermission();
+    // requestStoragePermission();
   }, []);
 
   return (
