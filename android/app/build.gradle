@@ -110,7 +110,6 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-    implementation("com.github.ReactNativeCommunity:react-native-permissions:3.0.0") // rn
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
