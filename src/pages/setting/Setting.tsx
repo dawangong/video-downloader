@@ -5,8 +5,9 @@ import {
   View,
   Text,
   ScrollView,
+  Platform,
 } from 'react-native';
-import { List, PickerView } from '@ant-design/react-native';
+import { List, PickerView, Toast } from '@ant-design/react-native';
 import { Dialog, Provider, Button } from 'react-native-paper';
 
 import { Header } from '@/components/index';
@@ -37,6 +38,8 @@ const Setting = () => {
     // backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
+  const [toastApi, contextHolder] = Toast.useToast();
+
   const { dir, maxTask, changeMaxTask } = useGlobalStore();
   const [showSaveDir, setShowSaveDir] = useState(false);
   const [showTaskLimit, setShowTaskLimit] = useState(false);
@@ -44,6 +47,7 @@ const Setting = () => {
 
   return (
     <Provider>
+      {contextHolder}
       <View style={pageStyle}>
         <Header model="back" />
         <View style={styles.wrapper}>
@@ -52,7 +56,14 @@ const Setting = () => {
               style={itemStyle}
               extra={dir}
               onPress={() => {
-                setShowSaveDir(true);
+                if (Platform.OS === 'ios') {
+                  toastApi.fail({
+                    content: 'IOS下无法更改下载目录',
+                    position: 'bottom',
+                  });
+                } else {
+                  setShowSaveDir(true);
+                }
               }}>
               保存位置
             </Item>
