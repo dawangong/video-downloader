@@ -1,40 +1,68 @@
-import { PermissionsAndroid } from 'react-native-permissions';
+import { Platform } from 'react-native';
+import { request, check, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
-// 请求存储权限
+// 存储权限
 export const requestStoragePermission = async () => {
   try {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      {
-        title: '存储权限',
-        message: '此应用需要访问您的存储空间',
-        buttonNeutral: '稍后询问',
-        buttonNegative: '取消',
-        buttonPositive: '确定',
-      },
-    );
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      console.log('存储权限已授予');
+    if (Platform.OS === 'ios') {
+      // iOS 默认访问自己应用目录，不需要额外存储权限
+      return true;
+    }
+    const permission = PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE;
+
+    // 检查权限是否已经授予
+    const status = await check(permission as any);
+    if (status === RESULTS.GRANTED) {
+      console.log('存储权限已授予，无需再次申请');
+      return true;
     } else {
-      console.log('存储权限被拒绝');
+      console.log('存储权限未授予，开始申请权限');
+      // 请求权限
+      const result = await request(permission as any);
+      if (result === RESULTS.GRANTED) {
+        console.log('存储权限已授予');
+        return true;
+      } else {
+        console.log('存储权限被拒绝');
+        return false;
+      }
     }
   } catch (err) {
     console.warn(err);
+    return false;
   }
 };
 
-// 检查存储权限
-export const checkStoragePermission = async () => {
+// 定位权限
+export const requestLocationPermission = async () => {
   try {
-    const granted = await PermissionsAndroid.check(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-    );
-    if (granted) {
-      console.log('存储权限已授予');
+    let permission;
+    if (Platform.OS === 'ios') {
+      // iOS 定位权限，可以根据需求选择 LOCATION_WHEN_IN_USE 或 LOCATION_ALWAYS
+      permission = PERMISSIONS.IOS.LOCATION_WHEN_IN_USE;
     } else {
-      console.log('存储权限未授予');
+      permission = PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION;
+    }
+
+    // 检查权限是否已经授予
+    const status = await check(permission);
+    if (status === RESULTS.GRANTED) {
+      console.log('定位权限已授予，无需再次申请');
+      return true;
+    } else {
+      console.log('定位权限未授予，开始申请权限');
+      // 请求权限
+      const result = await request(permission);
+      if (result === RESULTS.GRANTED) {
+        console.log('定位权限已授予');
+        return true;
+      } else {
+        console.log('定位权限被拒绝');
+        return false;
+      }
     }
   } catch (err) {
     console.warn(err);
+    return false;
   }
 };
