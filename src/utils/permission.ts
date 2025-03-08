@@ -42,6 +42,8 @@ export const requestLocationPermission = async () => {
       permission = PERMISSIONS.IOS.LOCATION_WHEN_IN_USE;
     } else {
       permission = PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION;
+      // 因为不需要直接返回
+      return true;
     }
 
     // 检查权限是否已经授予
