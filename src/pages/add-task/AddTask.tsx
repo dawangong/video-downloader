@@ -4,7 +4,7 @@ import { StyleSheet, useColorScheme, View, Text } from 'react-native';
 
 import MyColors from '@/constants/colors';
 import { Header } from '@/components/index';
-import { validateLink, mockApi } from '@/utils/tools';
+import { validateLink, mockApi, sliceVideoName } from '@/utils/tools';
 import useGlobalStore from '@/stores/globalStore';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 
@@ -37,22 +37,22 @@ const styles = StyleSheet.create({
     lineHeight: 35,
     marginTop: 20,
     backgroundColor: MyColors.primary,
-    borderColor: MyColors.primary01,
+    borderColor: MyColors.zero,
   },
   buttonActive: {
     backgroundColor: MyColors.primary,
-    borderColor: MyColors.primary01,
+    borderColor: MyColors.zero,
   },
   cButton: {
     width: 90,
     height: 35,
     lineHeight: 35,
     marginTop: 20,
-    backgroundColor: MyColors.primary05,
+    backgroundColor: MyColors.primary,
     borderColor: MyColors.zero,
   },
   cButtonActive: {
-    backgroundColor: MyColors.primary05,
+    backgroundColor: MyColors.primary,
     borderColor: MyColors.zero,
   },
 });
@@ -176,6 +176,8 @@ const AddTask = (): React.JSX.Element => {
                   toastApi.remove(ld);
                   if (res) {
                     setAnalySis(true);
+                    const name = sliceVideoName(fileLink);
+                    setFileName(name);
                   } else {
                     toastApi.fail({
                       content: '链接解析失败',
