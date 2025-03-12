@@ -1,13 +1,21 @@
+import { formatTypes } from '@/types/formatTypes';
+import { ruleTypes } from '@/types/ruleTypes';
+
+import rules from '@/constants/rules';
+
 export const isMp4 = (link: string): boolean => {
   return link.toLowerCase().endsWith('.mp4');
 };
 
-export const isM3u8 = (link: string): boolean => {
-  return link.toLowerCase().endsWith('.m3u8');
+export const formatOne = (format: formatTypes) => {
+  return format.toLowerCase();
 };
 
 export const validateLink = (link: string) => {
-  if (!isMp4(link) && !isMp4(link)) {
+  const res = rules.some((item: ruleTypes) =>
+    link.endsWith(formatOne(item.type)),
+  );
+  if (!res) {
     return false;
   }
   return true;

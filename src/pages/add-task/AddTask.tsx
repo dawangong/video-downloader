@@ -37,11 +37,11 @@ const styles = StyleSheet.create({
     lineHeight: 35,
     marginTop: 20,
     backgroundColor: MyColors.primary,
-    borderColor: MyColors.primary,
+    borderColor: MyColors.primary01,
   },
   buttonActive: {
     backgroundColor: MyColors.primary,
-    borderColor: MyColors.primary,
+    borderColor: MyColors.primary01,
   },
   cButton: {
     width: 90,
@@ -84,7 +84,7 @@ const AddTask = (): React.JSX.Element => {
         <View style={styles.body}>
           <Input
             value={fileLink}
-            placeholder="请输入mp4或m3u8链接, 解析下载"
+            placeholder="请输入合法的视频链接, 解析下载"
             style={[styles.input, isFocused ? styles.focusedInput : {}]}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
@@ -184,7 +184,7 @@ const AddTask = (): React.JSX.Element => {
                   }
                 } else {
                   toastApi.fail({
-                    content: '请输入mp4或m3u8链接',
+                    content: '请输入合法的视频链接',
                     position: 'bottom',
                   });
                 }
