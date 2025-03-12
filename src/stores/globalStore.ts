@@ -1,13 +1,13 @@
 import { create } from 'zustand';
 
+import { generateArrayWithIncrementalId } from '@/utils/tools';
+
 const data = {
-  fileName: '',
+  fileName:
+    '测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件.mp4',
   progress: 35,
   downSize: 100,
   size: 437,
-  chunk: 269,
-  totalChunk: 763,
-  status: '待定',
   downTime: '2025-03-05 00:20:11',
   length: '41:25',
   cover: '图片',
@@ -25,8 +25,8 @@ interface GlobalState {
 const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
   dir: '/v-downloader',
   maxTask: 3,
-  downList: new Array(10).fill(data),
-  cacheList: new Array(10).fill(data),
+  downList: generateArrayWithIncrementalId(100, data),
+  cacheList: generateArrayWithIncrementalId(100, data),
   changeMaxTask: v =>
     set(() => ({
       maxTask: [v[0]],

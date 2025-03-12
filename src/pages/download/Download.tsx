@@ -1,14 +1,37 @@
 import React from 'react';
-import { StyleSheet, useColorScheme, View, Text } from 'react-native';
+import { StyleSheet, useColorScheme, View, Text, FlatList } from 'react-native';
+import { Divider } from 'react-native-paper';
 
 import { Header } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
+import MyColors from '@/constants/colors';
 
 const styles = StyleSheet.create({
   wrapper: {
-    padding: 6,
+    paddingVertical: 6,
     flex: 1,
+  },
+  title: {
+    color: MyColors.title,
+    fontSize: 18,
+    paddingInline: 10,
+  },
+  list: {
+    paddingVertical: 6,
+    paddingInline: 10,
+    rowGap: 20,
+  },
+  item: {
+    paddingVertical: 6,
+    rowGap: 6,
+  },
+  itemText: {
+    color: MyColors.black,
+  },
+  status: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });
 
@@ -20,13 +43,35 @@ const Download = () => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const { dir, maxTask } = useGlobalStore();
+  const { dir, maxTask, downList } = useGlobalStore();
+
+  console.log(downList, 'downList');
 
   return (
     <View style={pageStyle}>
       <Header model="setting" />
       <View style={styles.wrapper}>
-        <Text>下载页</Text>
+        <Text style={styles.title}>下载页</Text>
+        <FlatList
+          style={styles.list}
+          data={downList}
+          renderItem={({ item }) => (
+            <>
+              <View style={styles.item}>
+                <Text style={styles.itemText}>{item.fileName}</Text>
+                <View style={styles.status}>
+                  <Text>
+                  下载视频中: {item.progress}%
+                  </Text>
+                  <Text>已下载: {item.downSize}MB</Text>
+                  <Text>总大小: {item.size}MB</Text>
+                </View>
+              </View>
+              <Divider />
+            </>
+          )}
+          keyExtractor={item => item.id}
+        />
       </View>
     </View>
   );

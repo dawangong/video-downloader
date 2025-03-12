@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footer: {
-    color: MyColors.gray,
+    color: MyColors.tips,
   },
   wrapper: {
     padding: 6,
@@ -37,11 +37,11 @@ const styles = StyleSheet.create({
     lineHeight: 35,
     marginTop: 20,
     backgroundColor: MyColors.primary,
-    borderColor: MyColors.zero,
+    borderColor: MyColors.opacity,
   },
   buttonActive: {
     backgroundColor: MyColors.primary,
-    borderColor: MyColors.zero,
+    borderColor: MyColors.opacity,
   },
   cButton: {
     width: 90,
@@ -49,11 +49,11 @@ const styles = StyleSheet.create({
     lineHeight: 35,
     marginTop: 20,
     backgroundColor: MyColors.primary,
-    borderColor: MyColors.zero,
+    borderColor: MyColors.opacity,
   },
   cButtonActive: {
     backgroundColor: MyColors.primary,
-    borderColor: MyColors.zero,
+    borderColor: MyColors.opacity,
   },
 });
 

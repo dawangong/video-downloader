@@ -3,10 +3,11 @@ enum MyColors {
   primary01 = 'rgba(166, 111, 254, 0.1)',
   primary05 = 'rgba(166, 111, 254, 0.5)',
   black = '#010101',
-  gray = '#999999',
+  tips = '#999999',
+  title = '#606770',
   white = '#ffffff',
   disable = 'rgb(221, 221, 221)',
-  zero = 'transparent',
+  opacity = 'transparent',
 }
 
 export default MyColors;
