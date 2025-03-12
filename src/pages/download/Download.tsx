@@ -9,16 +9,15 @@ import MyColors from '@/constants/colors';
 
 const styles = StyleSheet.create({
   wrapper: {
-    paddingVertical: 6,
     flex: 1,
   },
   title: {
     color: MyColors.title,
     fontSize: 18,
     paddingInline: 10,
+    paddingVertical: 6,
   },
   list: {
-    paddingVertical: 6,
     paddingInline: 10,
     rowGap: 20,
   },
@@ -51,7 +50,7 @@ const Download = () => {
     <View style={pageStyle}>
       <Header model="setting" />
       <View style={styles.wrapper}>
-        <Text style={styles.title}>下载页</Text>
+        <Text style={styles.title}>下载页:</Text>
         <FlatList
           style={styles.list}
           data={downList}
@@ -60,9 +59,7 @@ const Download = () => {
               <View style={styles.item}>
                 <Text style={styles.itemText}>{item.fileName}</Text>
                 <View style={styles.status}>
-                  <Text>
-                  下载视频中: {item.progress}%
-                  </Text>
+                  <Text>下载视频中: {item.progress}%</Text>
                   <Text>已下载: {item.downSize}MB</Text>
                   <Text>总大小: {item.size}MB</Text>
                 </View>
