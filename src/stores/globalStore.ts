@@ -10,7 +10,7 @@ const data = {
   size: 437,
   downTime: '2025-03-05 00:20:11',
   length: '41:25',
-  cover: '图片',
+  cover: 'https://reactnative.dev/img/tiny_logo.png',
 };
 
 // 定义状态的类型

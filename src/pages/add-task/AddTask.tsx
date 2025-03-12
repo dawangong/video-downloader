@@ -134,7 +134,7 @@ const AddTask = (): React.JSX.Element => {
                     if (!fileName) {
                       toastApi.fail({
                         content: '文件名不能为空',
-                        position: 'bottom',
+                        position: 'center',
                       });
                       return false;
                     }
@@ -142,14 +142,14 @@ const AddTask = (): React.JSX.Element => {
                     if (!fileLink) {
                       toastApi.fail({
                         content: '文件名不能为空',
-                        position: 'bottom',
+                        position: 'center',
                       });
                       return false;
                     }
 
                     toastApi.success({
                       content: '新下载任务添加成功',
-                      position: 'bottom',
+                      position: 'center',
                     });
 
                     setFileLink('');
@@ -181,13 +181,13 @@ const AddTask = (): React.JSX.Element => {
                   } else {
                     toastApi.fail({
                       content: '链接解析失败',
-                      position: 'bottom',
+                      position: 'center',
                     });
                   }
                 } else {
                   toastApi.fail({
                     content: '请输入合法的视频链接',
-                    position: 'bottom',
+                    position: 'center',
                   });
                 }
               }}>
