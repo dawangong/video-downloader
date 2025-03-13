@@ -14,9 +14,7 @@ import { Header } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import MyColors from '@/constants/colors';
-import {
-  selectDownloadDirectory,
-} from '@/utils/tools';
+import { selectDownloadDirectory } from '@/utils/tools';
 
 const Item = List.Item;
 
@@ -43,7 +41,7 @@ const Setting = () => {
 
   const [toastApi, contextHolder] = Toast.useToast();
 
-  const { dir, maxTask, changeMaxTask } = useGlobalStore();
+  const { dir, maxTask, changeMaxTask, setDir } = useGlobalStore();
   const [showSaveDir, setShowSaveDir] = useState(false);
   const [showTaskLimit, setShowTaskLimit] = useState(false);
   const [showProtocol, setShowProtocol] = useState(false);
@@ -100,7 +98,13 @@ const Setting = () => {
         <Dialog visible={showSaveDir} onDismiss={() => setShowSaveDir(false)}>
           <Dialog.Title>保存位置</Dialog.Title>
           <Dialog.Content>
-            <Text style={styles.select} onPress={selectDownloadDirectory}>
+            <Text
+              style={styles.select}
+              onPress={async () => {
+                setShowSaveDir(false);
+                const path = await selectDownloadDirectory();
+                path && setDir(path);
+              }}>
               选择文件夹...
             </Text>
           </Dialog.Content>

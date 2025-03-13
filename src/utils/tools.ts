@@ -1,6 +1,7 @@
-import { pick } from '@react-native-documents/picker';
+import { pickDirectory } from '@react-native-documents/picker';
 import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
+import { getRealPathFromURI } from 'react-native-get-real-path';
 
 import { VideoPattern } from '@/constants/rules';
 
@@ -58,13 +59,33 @@ export const getDefaultDownloadDirectory = async () => {
   }
 };
 
+export const convertContentUriToRealPath = (uri: string) => {
+  // 解码 URI
+  const decodedUri = decodeURIComponent(uri);
+  // 提取 "tree/" 后面的部分，即 Document ID
+  const treeIndex = decodedUri.indexOf('tree/');
+  if (treeIndex === -1) {
+    return null;
+  }
+  // 从 "tree/" 之后开始截取 Document ID
+  const documentId = decodedUri.substring(treeIndex + 'tree/'.length);
+  // 判断 Document ID 是否以 'primary:' 开头
+  if (documentId.startsWith('primary:')) {
+    // 替换 'primary:' 为实际的存储路径
+    return documentId.replace('primary:', '/storage/emulated/0/');
+  }
+  return null;
+};
+
 // 选择自定义下载目录
 export const selectDownloadDirectory = async () => {
   try {
-    const [res] = await pick({
-      type: 'directory',
+    const { uri } = await pickDirectory({
+      requestLongTermAccess: true,
     });
-    return res?.uri || null;
+    console.log(uri);
+    const path = await convertContentUriToRealPath(uri);
+    return path || null;
   } catch (err: any) {
     if (err.message === 'User cancelled') {
       console.log('User cancelled picking directory');
