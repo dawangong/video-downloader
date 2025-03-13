@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   useColorScheme,
@@ -14,6 +14,9 @@ import { Header } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import MyColors from '@/constants/colors';
+import {
+  selectDownloadDirectory,
+} from '@/utils/tools';
 
 const Item = List.Item;
 
@@ -44,6 +47,10 @@ const Setting = () => {
   const [showSaveDir, setShowSaveDir] = useState(false);
   const [showTaskLimit, setShowTaskLimit] = useState(false);
   const [showProtocol, setShowProtocol] = useState(false);
+
+  useEffect(() => {
+    //
+  }, []);
 
   return (
     <Provider>
@@ -93,7 +100,9 @@ const Setting = () => {
         <Dialog visible={showSaveDir} onDismiss={() => setShowSaveDir(false)}>
           <Dialog.Title>保存位置</Dialog.Title>
           <Dialog.Content>
-            <Text style={styles.select}>选择文件夹...</Text>
+            <Text style={styles.select} onPress={selectDownloadDirectory}>
+              选择文件夹...
+            </Text>
           </Dialog.Content>
         </Dialog>
         <Dialog

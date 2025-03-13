@@ -14,6 +14,8 @@ import {
   requestStoragePermission,
   requestLocationPermission,
 } from '@/utils/permission';
+import { getDefaultDownloadDirectory } from '@/utils/tools';
+import useGlobalStore from '@/stores/globalStore';
 
 const App = (): React.JSX.Element => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -21,10 +23,14 @@ const App = (): React.JSX.Element => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
+  const { setDir } = useGlobalStore();
+
   // 在应用启动时调用
   useEffect(() => {
     requestStoragePermission();
     requestLocationPermission();
+    // const res: any = getDefaultDownloadDirectory();
+    // setDir(res._j);
   }, []);
 
   return (

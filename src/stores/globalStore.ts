@@ -20,6 +20,7 @@ interface GlobalState {
   changeMaxTask(v: number[]): void;
   downList: any[];
   cacheList: any[];
+  setDir(dir: string): void;
 }
 
 const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
@@ -30,6 +31,10 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
   changeMaxTask: v =>
     set(() => ({
       maxTask: [v[0]],
+    })),
+  setDir: dir =>
+    set(() => ({
+      dir,
     })),
 }));
 
