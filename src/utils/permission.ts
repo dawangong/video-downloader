@@ -22,7 +22,7 @@ export const requestStoragePermission = async () => {
     } else if (status === RESULTS.BLOCKED) {
       console.log('存储权限被拒绝，且用户选择不再询问');
       // 引导用户手动开启权限
-      openAppSettings();
+      // openAppSettings();
       return false;
     } else {
       console.log('存储权限未授予，开始申请权限');

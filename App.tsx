@@ -29,9 +29,10 @@ const App = (): React.JSX.Element => {
   useEffect(() => {
     requestStoragePermission();
     requestLocationPermission();
-    // const res: any = getDefaultDownloadDirectory();
-    // setDir(res._j);
-  }, []);
+    getDefaultDownloadDirectory().then(res => {
+      setDir(res as string);
+    });
+  }, [setDir]);
 
   return (
     <>
