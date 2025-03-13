@@ -23,9 +23,9 @@ end
 
 # 不能为空 不然会导致 node_modules/react-native-permissions/RNPermissions.podspec s.frameworks 类型错误
 setup_permissions([
-  # 'Camera',           # 相机权限
-  # 'Microphone',       # 麦克风权限
-  # 'PhotoLibrary',     # 照片权限（访问照片库）
+  'Camera',           # 相机权限
+  'Microphone',       # 麦克风权限
+  'PhotoLibrary',     # 照片权限（访问照片库）
   'LocationWhenInUse' # 位置权限（仅在使用时获取位置）
 ])
 
