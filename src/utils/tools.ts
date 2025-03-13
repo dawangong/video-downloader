@@ -1,3 +1,7 @@
+import { pick } from '@react-native-documents/picker';
+import { Platform } from 'react-native';
+import RNFS from 'react-native-fs';
+
 import { VideoPattern } from '@/constants/rules';
 
 export const validateLink = (link: string): boolean => VideoPattern.test(link);
@@ -32,4 +36,66 @@ export const mockApi = (duration: number) => {
       resolve(true);
     }, duration * 1000);
   });
+};
+
+// 获取默认的下载目录
+export const getDefaultDownloadDirectory = async () => {
+  try {
+    // 根据平台选择不同的目录
+    let downloadDir = RNFS.DownloadDirectoryPath; // Android上的下载目录
+    if (Platform.OS === 'ios') {
+      downloadDir = RNFS.DocumentDirectoryPath; // iOS上的文档目录
+    }
+    // 确保目录存在
+    const isDirExists = await RNFS.exists(downloadDir);
+    if (!isDirExists) {
+      await RNFS.mkdir(downloadDir);
+    }
+    return downloadDir;
+  } catch (err) {
+    console.error('Error getting default download directory:', err);
+    return null;
+  }
+};
+
+// 选择自定义下载目录
+export const selectDownloadDirectory = async () => {
+  try {
+    const [res] = await pick({
+      type: 'directory',
+    });
+    return res?.uri || null;
+  } catch (err: any) {
+    if (err.message === 'User cancelled') {
+      console.log('User cancelled picking directory');
+    } else {
+      console.error('Error picking directory:', err);
+    }
+    return null;
+  }
+};
+
+// 获取文件列表
+export const getFileList = async (directoryPath: string) => {
+  try {
+    const files = await RNFS.readDir(directoryPath);
+    return files;
+  } catch (err) {
+    console.error('Error getting file list:', err);
+    return [];
+  }
+};
+
+// 获取文件预览图
+export const getPreviewImage = async (videoPath: string) => {
+  try {
+    const thumbnailPath = `${videoPath}_thumbnail.jpg`;
+    await RNFS.mkdir(RNFS.DocumentDirectoryPath);
+    const command = `ffmpeg -i ${videoPath} -ss 00:00:01 -vframes 1 ${thumbnailPath}`;
+    await (RNFS as any).executeCommand(command, true);
+    return thumbnailPath;
+  } catch (err) {
+    console.error('Error generating preview image:', err);
+    return null;
+  }
 };
