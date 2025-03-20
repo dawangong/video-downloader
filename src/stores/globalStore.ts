@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { generateArrayWithIncrementalId } from '@/utils/tools';
+import { saveData } from '@/utils/cache';
 
 const data = {
   fileName:
@@ -18,25 +19,41 @@ const data = {
 interface GlobalState {
   dir: string;
   maxTask: number;
-  changeMaxTask(v: number[]): void;
   downList: any[];
   cacheList: any[];
   setDir(dir: string): void;
+  setMaxTask(v: number): void;
+  setDirAndStorage(dir: string): void;
+  setMaxTaskAndStorage(v: number): void;
 }
 
 const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
-  dir: '/v-downloader',
-  maxTask: 3,
+  dir: '',
+  maxTask: 1,
   downList: generateArrayWithIncrementalId(100, data),
   cacheList: generateArrayWithIncrementalId(100, data),
-  changeMaxTask: v =>
-    set(() => ({
-      maxTask: [v[0]],
-    })),
-  setDir: dir =>
+  setDir(dir) {
     set(() => ({
       dir,
-    })),
+    }));
+  },
+  setMaxTask(v: number) {
+    set(() => ({
+      maxTask: v,
+    }));
+  },
+  setDirAndStorage(dir: string) {
+    set(() => ({
+      dir,
+    }));
+    saveData('dir', dir);
+  },
+  setMaxTaskAndStorage(v: number) {
+    set(() => ({
+      maxTask: v,
+    }));
+    saveData('maxTask', v);
+  },
 }));
 
 export default useGlobalStore;

@@ -5,7 +5,7 @@
  * @format
  */
 import 'react-native-gesture-handler'; // 确保在顶部引入
-import React, { useEffect } from 'react';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import StackNavigator from './src/router/plugins/StackNavigator';
 import { SafeAreaView, StatusBar, useColorScheme } from 'react-native'; // 导入需要的组件
@@ -16,6 +16,8 @@ import {
 } from '@/utils/permission';
 import { getDefaultDownloadDirectory } from '@/utils/tools';
 import useGlobalStore from '@/stores/globalStore';
+import { getData } from '@/utils/cache';
+import { useMount } from '@/hooks/index';
 
 const App = (): React.JSX.Element => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -23,16 +25,24 @@ const App = (): React.JSX.Element => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const { setDir } = useGlobalStore();
+  const { setDir, setMaxTask, maxTask: _mt } = useGlobalStore();
 
   // 在应用启动时调用
-  useEffect(() => {
+  useMount(() => {
     requestStoragePermission();
     requestLocationPermission();
-    getDefaultDownloadDirectory().then(res => {
-      setDir(res as string);
+
+    Promise.all([
+      getData('dir'),
+      getDefaultDownloadDirectory(),
+      getData('maxTask'),
+    ]).then((res: any) => {
+      const [dir1, dir2, maxTask = _mt] = res;
+      setDir(dir1 || dir2);
+      setMaxTask(maxTask);
     });
-  }, [setDir]);
+    console.log('App Mounted');
+  });
 
   return (
     <>

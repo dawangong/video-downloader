@@ -41,14 +41,15 @@ const Setting = () => {
 
   const [toastApi, contextHolder] = Toast.useToast();
 
-  const { dir, maxTask, changeMaxTask, setDir } = useGlobalStore();
+  const { dir, maxTask, setMaxTaskAndStorage, setDirAndStorage } =
+    useGlobalStore();
   const [showSaveDir, setShowSaveDir] = useState(false);
   const [showTaskLimit, setShowTaskLimit] = useState(false);
   const [showProtocol, setShowProtocol] = useState(false);
 
   useEffect(() => {
-    //
-  }, []);
+    console.log(maxTask);
+  }, [maxTask]);
 
   return (
     <Provider>
@@ -103,7 +104,7 @@ const Setting = () => {
               onPress={async () => {
                 setShowSaveDir(false);
                 const path = await selectDownloadDirectory();
-                path && setDir(path);
+                path && setDirAndStorage(path);
               }}>
               选择文件夹...
             </Text>
@@ -121,7 +122,7 @@ const Setting = () => {
                 },
               }}
               onChange={(v: any) => {
-                changeMaxTask(v);
+                setMaxTaskAndStorage(v[0]);
               }}
               value={[maxTask]}
               data={[
