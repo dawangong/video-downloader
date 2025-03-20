@@ -11,6 +11,7 @@ const data = {
   downTime: '2025-03-05 00:20:11',
   length: '41:25',
   cover: 'https://reactnative.dev/img/tiny_logo.png',
+  speed: 10,
 };
 
 // 定义状态的类型

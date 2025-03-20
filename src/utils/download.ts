@@ -53,6 +53,10 @@ export const downloadVideo = async (
   onProgress: any,
 ) => {
   try {
+    let startTime = new Date().getTime(); // 开始时间
+    let lastLoaded = 0; // 上一次已下载的字节数
+    let lastTime = startTime; // 上一次时间戳
+
     const response = await axios.get(url, {
       responseType: 'stream',
       onDownloadProgress: (progressEvent: any) => {
@@ -61,9 +65,25 @@ export const downloadVideo = async (
         const percentage = (loaded / total) * 100;
         const totalMb = (total / 1024 / 1024).toFixed(2);
         const loadedMb = (loaded / 1024 / 1024).toFixed(2);
-        onProgress(percentage, loadedMb, totalMb);
+
+        // 计算下载速度
+        const currentTime = new Date().getTime();
+        const timeDiff = currentTime - lastTime; // 时间差（毫秒）
+        const loadedDiff = loaded - lastLoaded; // 数据量差（字节）
+
+        let speed = 0;
+        if (timeDiff > 0 && loadedDiff > 0) {
+          speed = loadedDiff / 1024 / 1024 / (timeDiff / 1000); // MB/s
+        }
+
+        // 更新上次的时间和已下载字节数
+        lastTime = currentTime;
+        lastLoaded = loaded;
+
+        onProgress(percentage, loadedMb, totalMb, speed.toFixed(2)); // 传递下载速度
       },
     });
+
     const filePath = `${directoryPath}/${fileName}`;
     await RNFS.mkdir(directoryPath); // 确保目录存在
     return new Promise((resolve, reject) => {

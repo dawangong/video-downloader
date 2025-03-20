@@ -60,9 +60,12 @@ const Download = () => {
               <View style={styles.item}>
                 <Text style={styles.itemText}>{item.fileName}</Text>
                 <View style={styles.status}>
-                  <Text>下载视频中: {item.progress}%</Text>
-                  <Text>已下载: {item.downSize}MB</Text>
-                  <Text>总大小: {item.size}MB</Text>
+                  <Text>已下载: {item.progress}%</Text>
+                  <Text>速度: {item.speed}mb/s</Text>
+                </View>
+                <View style={styles.status}>
+                  <Text>已下载: {item.downSize}mb</Text>
+                  <Text>总大小: {item.size}mb</Text>
                 </View>
               </View>
               <Divider />
