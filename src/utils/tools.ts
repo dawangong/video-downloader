@@ -1,12 +1,15 @@
 import { pickDirectory } from '@react-native-documents/picker';
 import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
-import { getRealPathFromURI } from 'react-native-get-real-path';
+// @ts-ignore
+import { getThumbnail } from 'react-native-thumbnail-video';
 
 import { VideoPattern } from '@/constants/rules';
 
+// 验证链接
 export const validateLink = (link: string): boolean => VideoPattern.test(link);
 
+// 截取默认名称
 export const sliceVideoName = (link: string): string => {
   console.log(link.match(VideoPattern));
   const res = link.match(VideoPattern)?.[1];
@@ -31,6 +34,7 @@ export const generateArrayWithIncrementalId = (
     });
 };
 
+// 模拟req
 export const mockApi = (duration: number) => {
   return new Promise(resolve => {
     setTimeout(() => {
@@ -59,6 +63,7 @@ export const getDefaultDownloadDirectory = async () => {
   }
 };
 
+// 转换为真实路径
 export const convertContentUriToRealPath = (uri: string) => {
   // 解码 URI
   const decodedUri = decodeURIComponent(uri);
@@ -110,11 +115,10 @@ export const getFileList = async (directoryPath: string) => {
 // 获取文件预览图
 export const getPreviewImage = async (videoPath: string) => {
   try {
-    const thumbnailPath = `${videoPath}_thumbnail.jpg`;
-    await RNFS.mkdir(RNFS.DocumentDirectoryPath);
-    const command = `ffmpeg -i ${videoPath} -ss 00:00:01 -vframes 1 ${thumbnailPath}`;
-    await (RNFS as any).executeCommand(command, true);
-    return thumbnailPath;
+    const thumbnailPath = `${RNFS.DocumentDirectoryPath}/thumbnail.jpg`;
+    // 使用 react-native-thumbnail-video 获取缩略图
+    const result = await getThumbnail(videoPath, thumbnailPath, 1000); // 1000 毫秒处的帧
+    return result.path;
   } catch (err) {
     console.error('Error generating preview image:', err);
     return null;
