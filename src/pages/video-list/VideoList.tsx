@@ -62,7 +62,7 @@ const VideoList = () => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const { dir, maxTask, cacheList } = useGlobalStore();
+  const { dir, cacheList } = useGlobalStore();
   const [toastApi, contextHolder] = Toast.useToast();
 
   return (
@@ -79,6 +79,7 @@ const VideoList = () => {
               toastApi.show({
                 content: '列表刷新成功',
                 position: 'center',
+                mask: false,
               });
             }}
           />

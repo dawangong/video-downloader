@@ -66,6 +66,7 @@ const Setting = () => {
                   toastApi.fail({
                     content: 'IOS下无法更改下载目录',
                     position: 'center',
+                    mask: false,
                   });
                 } else {
                   setShowSaveDir(true);

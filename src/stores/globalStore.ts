@@ -1,5 +1,9 @@
 import { create } from 'zustand';
-import { downloadNormalVideo, downloadM3U8Video } from './../utils/download';
+import {
+  downloadNormalVideo,
+  downloadM3U8Video,
+  OnProgressCallback,
+} from './../utils/download';
 
 import {
   // generateArrayWithIncrementalId,
@@ -29,7 +33,9 @@ interface GlobalState {
   setMaxTask(v: number): void;
   setDirAndStorage(dir: string): void;
   setMaxTaskAndStorage(v: number): void;
-  downloadVideo(url: string, name: string): void;
+  downloadVideo(url: string, name: string, successFn: any): void;
+  addDownList(url: string, name: string): void;
+  updateDownList: OnProgressCallback;
 }
 
 const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
@@ -61,9 +67,66 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
     }));
     saveData('maxTask', v);
   },
-  async downloadVideo(url: string, name: string) {
+  async downloadVideo(url: string, name: string, successFn: any) {
     const isM3u8 = m3u8Link(url);
     const downloadFn = isM3u8 ? downloadM3U8Video : downloadNormalVideo;
+    get().addDownList(name, url);
+    await downloadFn(
+      url,
+      name,
+      get().dir,
+      (_url, percentage, loadedMb, totalMb, speed) => {
+        console.log('info', percentage, loadedMb, totalMb, speed);
+        get().updateDownList(_url, percentage, loadedMb, totalMb, speed);
+      },
+    );
+    const list = get().downList;
+    const item = list.find((it: any) => it.url === url);
+    const downList = list.filter((it: any) => it.url !== url);
+    get().addCacheList(item);
+    successFn(name);
+    set(() => ({
+      downList,
+    }));
+  },
+  addDownList(name, url) {
+    const downList = get().downList;
+    downList.push({
+      fileName: name,
+      progress: 0,
+      downSize: 0,
+      size: 0,
+      speed: 0,
+      url,
+      id: name,
+    });
+    set(() => ({
+      downList,
+    }));
+  },
+  updateDownList(url, percentage, loadedMb, totalMb, speed) {
+    const downList = get().downList.map((it: any) => {
+      if (it.url === url) {
+        return {
+          ...it,
+          progress: percentage,
+          downSize: loadedMb,
+          size: totalMb,
+          speed,
+        };
+      }
+      return it;
+    });
+    set(() => ({
+      downList,
+    }));
+  },
+  addCacheList(item: any) {
+    const cacheList = get().cacheList;
+    cacheList.push(item);
+    set(() => ({
+      cacheList,
+    }));
   },
 }));
 

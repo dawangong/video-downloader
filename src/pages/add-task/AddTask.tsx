@@ -135,6 +135,7 @@ const AddTask = (): React.JSX.Element => {
                       toastApi.fail({
                         content: '文件名不能为空',
                         position: 'center',
+                        mask: false,
                       });
                       return false;
                     }
@@ -143,15 +144,23 @@ const AddTask = (): React.JSX.Element => {
                       toastApi.fail({
                         content: '文件名不能为空',
                         position: 'center',
+                        mask: false,
                       });
                       return false;
                     }
 
-                    await downloadVideo(fileLink, fileName);
+                    downloadVideo(fileLink, fileName, (name: string) => {
+                      toastApi.success({
+                        content: `${name}下载完成`,
+                        position: 'center',
+                        mask: false,
+                      });
+                    });
 
                     toastApi.success({
                       content: '新下载任务添加成功',
                       position: 'center',
+                      mask: false,
                     });
 
                     setFileLink('');
@@ -174,7 +183,7 @@ const AddTask = (): React.JSX.Element => {
                     content: '链接解析中...',
                     duration: 0,
                   });
-                  await mockApi(3);
+                  await mockApi(1);
                   toastApi.remove(ld);
                   if (res) {
                     setAnalySis(true);
@@ -184,12 +193,14 @@ const AddTask = (): React.JSX.Element => {
                     toastApi.fail({
                       content: '链接解析失败',
                       position: 'center',
+                      mask: false,
                     });
                   }
                 } else {
                   toastApi.fail({
                     content: '请输入合法的视频链接',
                     position: 'center',
+                    mask: false,
                   });
                 }
               }}>

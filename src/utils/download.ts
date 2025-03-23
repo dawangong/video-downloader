@@ -1,7 +1,8 @@
 import RNFS from 'react-native-fs';
-import axios from 'axios';
+// import axios from 'axios';
 // @ts-ignore
 import { FFmpegKit } from 'ffmpeg-kit-react-native';
+// import { generateValidPath } from '@/utils/tools';
 
 // 创建文件
 export const createFile = async (path: string, content: any) => {
@@ -47,31 +48,52 @@ export const deleteFile = async (path: string) => {
   }
 };
 
+export type OnProgressCallback = (
+  url: string,
+  percentage: string,
+  loadedMb: string,
+  totalMb: string,
+  speed: string,
+) => void;
+
 // 下载普通视频文件
 export const downloadNormalVideo = async (
   url: string,
-  directoryPath: string,
   fileName: string,
-  onProgress: any,
+  directoryPath: string,
+  onProgress: OnProgressCallback,
 ) => {
   try {
-    let startTime = new Date().getTime(); // 开始时间
+    let lastTime = 0; // 上一次时间戳
     let lastLoaded = 0; // 上一次已下载的字节数
-    let lastTime = startTime; // 上一次时间戳
 
-    const response = await axios.get(url, {
-      responseType: 'stream',
-      onDownloadProgress: (progressEvent: any) => {
-        const total = progressEvent.total;
-        const loaded = progressEvent.loaded;
-        const percentage = (loaded / total) * 100;
-        const totalMb = (total / 1024 / 1024).toFixed(2);
-        const loadedMb = (loaded / 1024 / 1024).toFixed(2);
+    const filePath = `${directoryPath}/${fileName}`;
+    // 检查目录是否存在
+    const directoryExists = await RNFS.exists(directoryPath);
+    if (!directoryExists) {
+      await RNFS.mkdir(directoryPath); // 创建目录
+    }
+
+    const downloadTask = RNFS.downloadFile({
+      fromUrl: url,
+      toFile: filePath,
+      begin: res => {
+        console.log('Started', res);
+        lastTime = new Date().getTime(); // 初始化时间戳
+        lastLoaded = 0; // 初始化已下载字节数
+      },
+      progress: res => {
+        const percentage = (
+          (res.bytesWritten / res.contentLength) *
+          100
+        ).toFixed(2);
+        const loadedMb = (res.bytesWritten / 1024 / 1024).toFixed(2);
+        const totalMb = (res.contentLength / 1024 / 1024).toFixed(2);
 
         // 计算下载速度
         const currentTime = new Date().getTime();
         const timeDiff = currentTime - lastTime; // 时间差（毫秒）
-        const loadedDiff = loaded - lastLoaded; // 数据量差（字节）
+        const loadedDiff = res.bytesWritten - lastLoaded; // 数据量差（字节）
 
         let speed = 0;
         if (timeDiff > 0 && loadedDiff > 0) {
@@ -80,35 +102,19 @@ export const downloadNormalVideo = async (
 
         // 更新上次的时间和已下载字节数
         lastTime = currentTime;
-        lastLoaded = loaded;
+        lastLoaded = res.bytesWritten;
 
-        onProgress(percentage, loadedMb, totalMb, speed.toFixed(2)); // 传递下载速度
+        onProgress(url, percentage, loadedMb, totalMb, speed.toFixed(2)); // 传递下载速度
       },
     });
 
-    const filePath = `${directoryPath}/${fileName}`;
-    await RNFS.mkdir(directoryPath); // 确保目录存在
-
-    // 使用 RNFS.writeFile 写入文件
-    return new Promise((resolve, reject) => {
-      const chunks: any[] = [];
-      response.data.on('data', (chunk: any) => {
-        chunks.push(chunk);
-      });
-      response.data.on('end', async () => {
-        try {
-          const fileData = Buffer.concat(chunks).toString('binary');
-          await RNFS.writeFile(filePath, fileData, 'utf8');
-          const endTime = new Date().toISOString();
-          resolve({ success: true, endTime });
-        } catch (err) {
-          reject(err);
-        }
-      });
-      response.data.on('error', (err: any) => {
-        reject(err);
-      });
-    });
+    const downloadResult = await downloadTask.promise;
+    if (downloadResult.statusCode === 200) {
+      const endTime = new Date().toISOString();
+      return { success: true, endTime };
+    } else {
+      return { success: false, error: 'Download failed' };
+    }
   } catch (err) {
     console.error('Error downloading video:', err);
     return { success: false, error: err };
@@ -120,7 +126,7 @@ export const downloadM3U8Video = async (
   url: string,
   directoryPath: string,
   fileName: string,
-  onProgress: any,
+  onProgress: OnProgressCallback,
 ) => {
   try {
     // 下载m3u8文件
