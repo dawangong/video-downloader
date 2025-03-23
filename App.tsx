@@ -8,7 +8,12 @@ import 'react-native-gesture-handler'; // 确保在顶部引入
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import StackNavigator from './src/router/plugins/StackNavigator';
-import { SafeAreaView, StatusBar, useColorScheme } from 'react-native'; // 导入需要的组件
+import {
+  SafeAreaView,
+  StatusBar,
+  useColorScheme,
+  // NativeModules,
+} from 'react-native'; // 导入需要的组件
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import {
   requestStoragePermission,
@@ -18,6 +23,16 @@ import { getDefaultDownloadDirectory } from '@/utils/tools';
 import useGlobalStore from '@/stores/globalStore';
 import { getData } from '@/utils/cache';
 import { useMount } from '@/hooks/index';
+
+// if (__DEV__) {
+//   require('react-native-devsettings');
+// }
+// if (__DEV__) {
+//   NativeModules.DevSettings.setIsDebuggingRemotely(true);
+// }
+if (__DEV__) {
+  require('./ReactotronConfig');
+}
 
 const App = (): React.JSX.Element => {
   const isDarkMode = useColorScheme() === 'dark';
