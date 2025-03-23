@@ -65,7 +65,7 @@ const AddTask = (): React.JSX.Element => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const { dir } = useGlobalStore();
+  const { dir, downloadVideo } = useGlobalStore();
 
   const [isFocused, setIsFocused] = useState(false);
   const [fileLink, setFileLink] = useState('');
@@ -146,6 +146,8 @@ const AddTask = (): React.JSX.Element => {
                       });
                       return false;
                     }
+
+                    downloadVideo(fileLink, fileName);
 
                     toastApi.success({
                       content: '新下载任务添加成功',

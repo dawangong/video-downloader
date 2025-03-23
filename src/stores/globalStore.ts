@@ -1,19 +1,22 @@
 import { create } from 'zustand';
+import { downloadVideo, downloadM3U8Video } from './../utils/download';
 
-import { generateArrayWithIncrementalId } from '@/utils/tools';
+import {
+  // generateArrayWithIncrementalId,
+  m3u8Link } from '@/utils/tools';
 import { saveData } from '@/utils/cache';
 
-const data = {
-  fileName:
-    '测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件.mp4',
-  progress: 35,
-  downSize: 100,
-  size: 437,
-  downTime: '2025-03-05 00:20:11',
-  length: '41:25',
-  cover: 'https://reactnative.dev/img/tiny_logo.png',
-  speed: 10,
-};
+// const data = {
+//   fileName:
+//     '测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件测试文件.mp4',
+//   progress: 35,
+//   downSize: 100,
+//   size: 437,
+//   downTime: '2025-03-05 00:20:11',
+//   length: '41:25',
+//   cover: 'https://reactnative.dev/img/tiny_logo.png',
+//   speed: 10,
+// };
 
 // 定义状态的类型
 interface GlobalState {
@@ -25,13 +28,16 @@ interface GlobalState {
   setMaxTask(v: number): void;
   setDirAndStorage(dir: string): void;
   setMaxTaskAndStorage(v: number): void;
+  downloadVideo(url: string, name: string): void;
 }
 
 const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
   dir: '',
   maxTask: 1,
-  downList: generateArrayWithIncrementalId(100, data),
-  cacheList: generateArrayWithIncrementalId(100, data),
+  // downList: generateArrayWithIncrementalId(100, data),
+  // cacheList: generateArrayWithIncrementalId(100, data),
+  downList: [],
+  cacheList: [],
   setDir(dir) {
     set(() => ({
       dir,
@@ -53,6 +59,10 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
       maxTask: v,
     }));
     saveData('maxTask', v);
+  },
+  downloadVideo(url: string, name: string) {
+    const isM3u8 = m3u8Link(url);
+    const fn = isM3u8 ? downloadM3U8Video : downloadVideo;
   },
 }));
 

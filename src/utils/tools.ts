@@ -4,10 +4,13 @@ import RNFS from 'react-native-fs';
 // @ts-ignore
 import { getThumbnail } from 'react-native-thumbnail-video';
 
-import { VideoPattern } from '@/constants/rules';
+import { VideoPattern, M3U8Pattern } from '@/constants/rules';
 
 // 验证链接
 export const validateLink = (link: string): boolean => VideoPattern.test(link);
+
+// 验证m3u8链接
+export const m3u8Link = (link: string): boolean => M3U8Pattern.test(link);
 
 // 截取默认名称
 export const sliceVideoName = (link: string): string => {
