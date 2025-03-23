@@ -147,7 +147,7 @@ const AddTask = (): React.JSX.Element => {
                       return false;
                     }
 
-                    downloadVideo(fileLink, fileName);
+                    await downloadVideo(fileLink, fileName);
 
                     toastApi.success({
                       content: '新下载任务添加成功',

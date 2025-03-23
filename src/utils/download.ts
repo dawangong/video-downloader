@@ -48,7 +48,7 @@ export const deleteFile = async (path: string) => {
 };
 
 // 下载普通视频文件
-export const downloadVideo = async (
+export const downloadNormalVideo = async (
   url: string,
   directoryPath: string,
   fileName: string,

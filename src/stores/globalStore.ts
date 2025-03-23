@@ -1,9 +1,10 @@
 import { create } from 'zustand';
-import { downloadVideo, downloadM3U8Video } from './../utils/download';
+import { downloadNormalVideo, downloadM3U8Video } from './../utils/download';
 
 import {
   // generateArrayWithIncrementalId,
-  m3u8Link } from '@/utils/tools';
+  m3u8Link,
+} from '@/utils/tools';
 import { saveData } from '@/utils/cache';
 
 // const data = {
@@ -60,9 +61,9 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
     }));
     saveData('maxTask', v);
   },
-  downloadVideo(url: string, name: string) {
+  async downloadVideo(url: string, name: string) {
     const isM3u8 = m3u8Link(url);
-    const fn = isM3u8 ? downloadM3U8Video : downloadVideo;
+    const downloadFn = isM3u8 ? downloadM3U8Video : downloadNormalVideo;
   },
 }));
 
