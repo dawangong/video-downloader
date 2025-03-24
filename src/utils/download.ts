@@ -3,6 +3,10 @@ import RNFS from 'react-native-fs';
 // @ts-ignore
 import { FFmpegKit } from 'ffmpeg-kit-react-native';
 // import { generateValidPath } from '@/utils/tools';
+import { VideoPattern } from '@/constants/rules';
+import { format } from 'date-fns';
+import RNVideoInfo from 'react-native-video-info';
+// import { createThumbnail } from 'react-native-create-thumbnail';
 
 // 创建文件
 export const createFile = async (path: string, content: any) => {
@@ -48,6 +52,105 @@ export const deleteFile = async (path: string) => {
   }
 };
 
+// 读取目录下所有视频文件
+export const readVideoFiles = async (directoryPath: string) => {
+  if (!directoryPath) {
+    return []; // 返回空数组而不是 false
+  }
+  try {
+    // 获取目录中的所有文件和子目录
+    const files = await RNFS.readDir(directoryPath);
+    const videoFiles: {
+      fileName: string;
+      size: number; // 以 MB 为单位
+      length: number; // 时长（秒）
+      downTime: string; // 下载时间
+      cover: string; // 缩略图路径
+      path: string;
+    }[] = [];
+
+    // 遍历文件和子目录
+    for (const file of files) {
+      // 如果是目录，递归读取其中的视频文件
+      if (file.isDirectory()) {
+        const subDirectoryVideoFiles = await readVideoFiles(file.path);
+        videoFiles.push(...subDirectoryVideoFiles); // 现在可以安全地展开数组
+      } else {
+        // 使用正则表达式检查是否为视频文件
+        if (VideoPattern.test(file.path)) {
+          // 获取视频文件的基本信息
+          const videoInfo = await getVideoInfo(file.path);
+          if (videoInfo) {
+            videoFiles.push(videoInfo as any);
+          }
+        }
+      }
+    }
+
+    return videoFiles;
+  } catch (err) {
+    console.error('Error reading directory:', err);
+    return []; // 返回空数组而不是 false
+  }
+};
+
+// 获取视频文件的详细信息
+const getVideoInfo = async (filePath: string) => {
+  try {
+    // 获取文件大小（以 MB 为单位）
+    const fileSizeInBytes = await RNFS.stat(filePath).then(stat => stat.size);
+    const fileSizeInMB = fileSizeInBytes / (1024 * 1024);
+
+    // 获取视频时长
+    const videoInfo = await RNVideoInfo.get(filePath);
+    const duration = videoInfo.duration;
+
+    const fileName = filePath.split('/').pop() || '';
+    const downTime = getFileModificationTime(filePath);
+
+    // 生成缩略图
+    // const thumbnailPath = await createThumbnail({
+    //   url: filePath,
+    //   timeStamp: 10000,
+    // });
+    const thumbnailPath = '';
+
+    return {
+      fileName,
+      size: fileSizeInMB,
+      length: duration,
+      downTime,
+      cover: thumbnailPath,
+      path: filePath,
+    };
+  } catch (err) {
+    console.error('Error getting video info:', err);
+    return null;
+  }
+};
+
+// 获取文件的最后修改时间并格式化为 yyyy-MM-dd HH:mm:ss
+const getFileModificationTime = async (filePath: string) => {
+  try {
+    const stats = await RNFS.stat(filePath);
+    if (stats) {
+      const modificationTime = stats.mtime; // 文件的最后修改时间
+      const formattedTime = format(
+        new Date(modificationTime),
+        'yyyy-MM-dd HH:mm:ss',
+      );
+      console.log('文件最后修改时间:', formattedTime);
+      return formattedTime;
+    } else {
+      console.error('文件不存在');
+      return null;
+    }
+  } catch (error) {
+    console.error('获取文件修改时间失败:', error);
+    return null;
+  }
+};
+
 export type OnProgressCallback = (
   url: string,
   percentage: string,
@@ -86,9 +189,9 @@ export const downloadNormalVideo = async (
         const percentage = (
           (res.bytesWritten / res.contentLength) *
           100
-        ).toFixed(2);
-        const loadedMb = (res.bytesWritten / 1024 / 1024).toFixed(2);
-        const totalMb = (res.contentLength / 1024 / 1024).toFixed(2);
+        ).toFixed(1);
+        const loadedMb = (res.bytesWritten / 1024 / 1024).toFixed(1);
+        const totalMb = (res.contentLength / 1024 / 1024).toFixed(1);
 
         // 计算下载速度
         const currentTime = new Date().getTime();
@@ -104,7 +207,7 @@ export const downloadNormalVideo = async (
         lastTime = currentTime;
         lastLoaded = res.bytesWritten;
 
-        onProgress(url, percentage, loadedMb, totalMb, speed.toFixed(2)); // 传递下载速度
+        onProgress(url, percentage, loadedMb, totalMb, speed.toFixed(1)); // 传递下载速度
       },
     });
 
@@ -139,8 +242,8 @@ export const downloadM3U8Video = async (
       },
       progress: (event: any) => {
         const percentage = (event.loaded / event.contentLength) * 100;
-        const loadedMb = (event.loaded / 1024 / 1024).toFixed(2);
-        const totalMb = (event.contentLength / 1024 / 1024).toFixed(2);
+        const loadedMb = (event.loaded / 1024 / 1024).toFixed(1);
+        const totalMb = (event.contentLength / 1024 / 1024).toFixed(1);
         onProgress(percentage, loadedMb, totalMb, 0);
       },
     }).promise;
@@ -165,8 +268,8 @@ export const downloadM3U8Video = async (
         },
         progress: (event: any) => {
           const percentage = (event.loaded / event.contentLength) * 100;
-          const loadedMb = (event.loaded / 1024 / 1024).toFixed(2);
-          const totalMb = (event.contentLength / 1024 / 1024).toFixed(2);
+          const loadedMb = (event.loaded / 1024 / 1024).toFixed(1);
+          const totalMb = (event.contentLength / 1024 / 1024).toFixed(1);
           onProgress(percentage, loadedMb, totalMb, 0);
         },
       }).promise;

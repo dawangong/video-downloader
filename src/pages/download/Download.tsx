@@ -43,7 +43,7 @@ const Download = () => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const { dir, maxTask, downList } = useGlobalStore();
+  const { downList } = useGlobalStore();
 
   console.log(downList, 'downList');
 

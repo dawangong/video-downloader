@@ -14,6 +14,7 @@ import { Header } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import MyColors from '@/constants/colors';
+import { useMount } from '@/hooks/index';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -62,8 +63,12 @@ const VideoList = () => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const { dir, cacheList } = useGlobalStore();
+  const { dir, cacheList, updateCacheList } = useGlobalStore();
   const [toastApi, contextHolder] = Toast.useToast();
+
+  useMount(() => {
+    updateCacheList();
+  });
 
   return (
     <View style={pageStyle}>
@@ -76,6 +81,7 @@ const VideoList = () => {
             name="reload"
             color={MyColors.black}
             onPress={() => {
+              updateCacheList();
               toastApi.show({
                 content: '列表刷新成功',
                 position: 'center',
@@ -94,7 +100,7 @@ const VideoList = () => {
                 <View style={styles.info}>
                   <Text style={styles.itemText}>{item.fileName}</Text>
                   <View style={styles.status}>
-                    <Text>大小: {item.size}MB</Text>
+                    <Text>大小: {item.size} MB</Text>
                     <Text>时长: {item.length}</Text>
                   </View>
                   <Text>下载于: {item.downTime}</Text>

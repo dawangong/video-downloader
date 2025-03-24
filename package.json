@@ -20,6 +20,7 @@
     "@react-navigation/native": "^7.0.15",
     "@react-navigation/stack": "^7.1.2",
     "axios": "^1.8.3",
+    "date-fns": "^4.1.0",
     "ffmpeg-kit-react-native": "^6.0.2",
     "react": "19.0.0",
     "react-native": "0.78.0",
@@ -31,7 +32,7 @@
     "react-native-reanimated": "^3.17.1",
     "react-native-safe-area-context": "^5.2.0",
     "react-native-screens": "^4.9.1",
-    "react-native-thumbnail-video": "^0.1.2",
+    "react-native-video-info": "^0.1.3",
     "zustand": "^5.0.3"
   },
   "devDependencies": {

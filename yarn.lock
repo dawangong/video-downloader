@@ -3298,6 +3298,11 @@ data-view-byte-offset@^1.0.1:
     es-errors "^1.3.0"
     is-data-view "^1.0.1"
 
+date-fns@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.npmmirror.com/date-fns/-/date-fns-4.1.0.tgz#64b3d83fff5aa80438f5b1a633c2e83b8a1c2d14"
+  integrity sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==
+
 dayjs@^1.11.7, dayjs@^1.8.15:
   version "1.11.13"
   resolved "https://registry.npmmirror.com/dayjs/-/dayjs-1.11.13.tgz#92430b0139055c3ebb60150aa13e860a4b5a366c"
@@ -6710,11 +6715,6 @@ react-native-screens@^4.9.1:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
-react-native-thumbnail-video@^0.1.2:
-  version "0.1.2"
-  resolved "https://registry.npmmirror.com/react-native-thumbnail-video/-/react-native-thumbnail-video-0.1.2.tgz#a50e3c665ce987d641da43d2528e372cac111322"
-  integrity sha512-+dD8dIUxiZz/QaL+gOtmb3Co/VE0MK5s8el9fYXpuEZbQu882voz7ALJmEn5o7A62sDTT3mpR2UF1V0ioXTFKA==
-
 react-native-typescript-transformer@^1.2.13:
   version "1.2.13"
   resolved "https://registry.npmmirror.com/react-native-typescript-transformer/-/react-native-typescript-transformer-1.2.13.tgz#be92a3d110dbb2cf2f4aebe60a935be124cfb7ed"
@@ -6727,6 +6727,11 @@ react-native-typescript-transformer@^1.2.13:
     jju "^1.3.0"
     semver "^5.4.1"
     source-map "^0.5.6"
+
+react-native-video-info@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.npmmirror.com/react-native-video-info/-/react-native-video-info-0.1.3.tgz#afb2a54b5e2ab9037d2e86d665893167c973b104"
+  integrity sha512-IWAsqti6RxZGwnH+b2YhO1GS1c00auRiZEPotmWUpYMWWKWyqSJAa6nFast4C4uGA8mDg3I1giJp7Z5g2AgrFA==
 
 react-native@0.78.0:
   version "0.78.0"

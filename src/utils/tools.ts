@@ -121,27 +121,3 @@ export const selectDownloadDirectory = async () => {
     return null;
   }
 };
-
-// 获取文件列表
-export const getFileList = async (directoryPath: string) => {
-  try {
-    const files = await RNFS.readDir(directoryPath);
-    return files;
-  } catch (err) {
-    console.error('Error getting file list:', err);
-    return [];
-  }
-};
-
-// 获取文件预览图
-export const getPreviewImage = async (videoPath: string) => {
-  try {
-    const thumbnailPath = `${RNFS.DocumentDirectoryPath}/thumbnail.jpg`;
-    // 使用 react-native-thumbnail-video 获取缩略图
-    const result = await getThumbnail(videoPath, thumbnailPath, 1000); // 1000 毫秒处的帧
-    return result.path;
-  } catch (err) {
-    console.error('Error generating preview image:', err);
-    return null;
-  }
-};

@@ -3,6 +3,7 @@ import {
   downloadNormalVideo,
   downloadM3U8Video,
   OnProgressCallback,
+  readVideoFiles,
 } from './../utils/download';
 
 import {
@@ -35,6 +36,8 @@ interface GlobalState {
   setMaxTaskAndStorage(v: number): void;
   downloadVideo(url: string, name: string, successFn: any): void;
   addDownList(url: string, name: string): void;
+  setCacheList(list: any): void;
+  updateCacheList(): void;
   updateDownList: OnProgressCallback;
 }
 
@@ -81,9 +84,7 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
       },
     );
     const list = get().downList;
-    const item = list.find((it: any) => it.url === url);
     const downList = list.filter((it: any) => it.url !== url);
-    get().addCacheList(item);
     successFn(name);
     set(() => ({
       downList,
@@ -121,12 +122,16 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
       downList,
     }));
   },
-  addCacheList(item: any) {
-    const cacheList = get().cacheList;
-    cacheList.push(item);
+  setCacheList(list: any) {
     set(() => ({
-      cacheList,
+      cacheList: list,
     }));
+  },
+  async updateCacheList() {
+    const { dir, setCacheList } = get();
+    const list = await readVideoFiles(dir);
+    console.log(list);
+    setCacheList(list);
   },
 }));
 
