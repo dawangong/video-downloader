@@ -63,10 +63,12 @@ export const readVideoFiles = async (directoryPath: string) => {
     const videoFiles: {
       fileName: string;
       size: number; // 以 MB 为单位
-      length: number; // 时长（秒）
+      length: string; // 时长（分钟:秒 或 小时:分钟:秒）
       downTime: string; // 下载时间
       cover: string; // 缩略图路径
       path: string;
+      id: string;
+      updateAt: string;
     }[] = [];
 
     // 遍历文件和子目录
@@ -87,6 +89,11 @@ export const readVideoFiles = async (directoryPath: string) => {
       }
     }
 
+    // 按下载时间排序，新的在前
+    videoFiles.sort(
+      (a, b) => new Date(b.updateAt).getTime() - new Date(a.updateAt).getTime(),
+    );
+
     return videoFiles;
   } catch (err) {
     console.error('Error reading directory:', err);
@@ -97,31 +104,51 @@ export const readVideoFiles = async (directoryPath: string) => {
 // 获取视频文件的详细信息
 const getVideoInfo = async (filePath: string) => {
   try {
-    // 获取文件大小（以 MB 为单位）
+    // 获取文件大小（以 MB 为单位），保留一位小数
     const fileSizeInBytes = await RNFS.stat(filePath).then(stat => stat.size);
-    const fileSizeInMB = fileSizeInBytes / (1024 * 1024);
+    const fileSizeInMB = (fileSizeInBytes / (1024 * 1024)).toFixed(1);
 
-    // 获取视频时长
+    // 获取视频时长（秒），并转换为合适的格式
     const videoInfo = await RNVideoInfo.get(filePath);
-    const duration = videoInfo.duration;
+    const durationInSeconds = videoInfo.duration;
+    let duration: string;
+
+    if (durationInSeconds >= 3600) {
+      // 如果时长大于等于 1 小时，显示为小时:分钟:秒格式
+      const hours = Math.floor(durationInSeconds / 3600);
+      const minutes = Math.floor((durationInSeconds % 3600) / 60);
+      const seconds = Math.floor(durationInSeconds % 60);
+      duration = `${hours.toString().padStart(1, '0')}:${minutes
+        .toString()
+        .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    } else {
+      // 否则显示为分钟:秒格式
+      const minutes = Math.floor(durationInSeconds / 60);
+      const seconds = Math.floor(durationInSeconds % 60);
+      duration = `${minutes.toString().padStart(1, '0')}:${seconds
+        .toString()
+        .padStart(2, '0')}`;
+    }
 
     const fileName = filePath.split('/').pop() || '';
-    const downTime = getFileModificationTime(filePath);
+    const [updateAt, downTime] = await getFileModificationTime(filePath);
 
-    // 生成缩略图
+    // 生成缩略图（可选）
     // const thumbnailPath = await createThumbnail({
     //   url: filePath,
     //   timeStamp: 10000,
     // });
-    const thumbnailPath = '';
+    const thumbnailPath = ''; // 如果不需要缩略图，可以保持为空
 
     return {
       fileName,
-      size: fileSizeInMB,
+      size: parseFloat(fileSizeInMB), // 转换回数字类型
       length: duration,
       downTime,
       cover: thumbnailPath,
       path: filePath,
+      id: fileName,
+      updateAt,
     };
   } catch (err) {
     console.error('Error getting video info:', err);
@@ -140,14 +167,14 @@ const getFileModificationTime = async (filePath: string) => {
         'yyyy-MM-dd HH:mm:ss',
       );
       console.log('文件最后修改时间:', formattedTime);
-      return formattedTime;
+      return [modificationTime, formattedTime];
     } else {
       console.error('文件不存在');
-      return null;
+      return [null, null];
     }
   } catch (error) {
     console.error('获取文件修改时间失败:', error);
-    return null;
+    return [null, null];
   }
 };
 

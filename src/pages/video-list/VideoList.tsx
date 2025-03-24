@@ -36,6 +36,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     rowGap: 6,
     flexDirection: 'row',
+    alignItems: 'center',
   },
   itemText: {
     color: MyColors.black,
@@ -50,8 +51,13 @@ const styles = StyleSheet.create({
   },
   cover: {
     width: 80,
+    height: 60,
     backgroundColor: MyColors.disable,
     borderRadius: 10,
+  },
+  empty: {
+    textAlign: 'center',
+    color: MyColors.tips,
   },
 });
 
@@ -80,8 +86,8 @@ const VideoList = () => {
           <Icon
             name="reload"
             color={MyColors.black}
-            onPress={() => {
-              updateCacheList();
+            onPress={async () => {
+              await updateCacheList();
               toastApi.show({
                 content: '列表刷新成功',
                 position: 'center',
@@ -90,27 +96,35 @@ const VideoList = () => {
             }}
           />
         </View>
-        <FlatList
-          style={styles.list}
-          data={cacheList}
-          renderItem={({ item }) => (
-            <>
-              <View style={styles.item}>
-                <Image style={styles.cover} source={item.cover} />
-                <View style={styles.info}>
-                  <Text style={styles.itemText}>{item.fileName}</Text>
-                  <View style={styles.status}>
-                    <Text>大小: {item.size} MB</Text>
-                    <Text>时长: {item.length}</Text>
+        {cacheList.length > 0 ? (
+          <FlatList
+            style={styles.list}
+            data={cacheList}
+            renderItem={({ item }) => (
+              <>
+                <View style={styles.item}>
+                  <Image
+                    style={styles.cover}
+                    source={require('@/assets/images/thumbnail.png')}
+                    resizeMode="cover" // 设置为 cover 模式
+                  />
+                  <View style={styles.info}>
+                    <Text style={styles.itemText}>{item.fileName}</Text>
+                    <View style={styles.status}>
+                      <Text>大小: {item.size} MB</Text>
+                      <Text>时长: {item.length}</Text>
+                    </View>
+                    <Text>下载于: {item.downTime}</Text>
                   </View>
-                  <Text>下载于: {item.downTime}</Text>
                 </View>
-              </View>
-              <Divider />
-            </>
-          )}
-          keyExtractor={item => item.id}
-        />
+                <Divider />
+              </>
+            )}
+            keyExtractor={item => item.id}
+          />
+        ) : (
+          <Text style={styles.empty}>暂无视频</Text>
+        )}
       </View>
     </View>
   );

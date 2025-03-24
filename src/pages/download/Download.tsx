@@ -33,6 +33,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  empty: {
+    textAlign: 'center',
+    color: MyColors.tips,
+  },
 });
 
 const Download = () => {
@@ -52,27 +56,31 @@ const Download = () => {
       <Header model="setting" />
       <View style={styles.wrapper}>
         <Text style={styles.title}>下载页:</Text>
-        <FlatList
-          style={styles.list}
-          data={downList}
-          renderItem={({ item }) => (
-            <>
-              <View style={styles.item}>
-                <Text style={styles.itemText}>{item.fileName}</Text>
-                <View style={styles.status}>
-                  <Text>已下载: {item.progress}%</Text>
-                  <Text>速度: {item.speed}mb/s</Text>
+        {downList.length > 0 ? (
+          <FlatList
+            style={styles.list}
+            data={downList}
+            renderItem={({ item }) => (
+              <>
+                <View style={styles.item}>
+                  <Text style={styles.itemText}>{item.fileName}</Text>
+                  <View style={styles.status}>
+                    <Text>已下载: {item.progress}%</Text>
+                    <Text>速度: {item.speed}mb/s</Text>
+                  </View>
+                  <View style={styles.status}>
+                    <Text>已下载: {item.downSize}mb</Text>
+                    <Text>总大小: {item.size}mb</Text>
+                  </View>
                 </View>
-                <View style={styles.status}>
-                  <Text>已下载: {item.downSize}mb</Text>
-                  <Text>总大小: {item.size}mb</Text>
-                </View>
-              </View>
-              <Divider />
-            </>
-          )}
-          keyExtractor={item => item.id}
-        />
+                <Divider />
+              </>
+            )}
+            keyExtractor={item => item.id}
+          />
+        ) : (
+          <Text style={styles.empty}>暂无视频</Text>
+        )}
       </View>
     </View>
   );
