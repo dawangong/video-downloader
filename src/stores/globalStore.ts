@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import {
+  downloadNormalVideo2,
   downloadNormalVideo,
   downloadM3U8Video,
   OnProgressCallback,

@@ -3,7 +3,7 @@ import RNFS from 'react-native-fs';
 // @ts-ignore
 import { FFmpegKit } from 'ffmpeg-kit-react-native';
 // import { generateValidPath } from '@/utils/tools';
-import { VideoPattern } from '@/constants/rules';
+import { PlayPattern } from '@/constants/rules';
 import { format } from 'date-fns';
 import RNVideoInfo from 'react-native-video-info';
 // import { createThumbnail } from 'react-native-create-thumbnail';
@@ -111,7 +111,7 @@ export const readVideoFiles = async (directoryPath: string) => {
         videoFiles.push(...subDirectoryVideoFiles); // 现在可以安全地展开数组
       } else {
         // 使用正则表达式检查是否为视频文件
-        if (VideoPattern.test(file.path)) {
+        if (PlayPattern.test(file.path)) {
           // 获取视频文件的基本信息
           const videoInfo = await getVideoInfo(file.path);
           if (videoInfo) {
@@ -218,8 +218,8 @@ export type OnProgressCallback = (
   speed: string,
 ) => void;
 
-// 下载普通视频文件
-export const downloadNormalVideo = async (
+// 下载普通视频文件(多线程)
+export const downloadNormalVideo2 = async (
   url: string,
   fileName: string,
   directoryPath: string,
@@ -294,6 +294,12 @@ export const downloadNormalVideo = async (
         },
       });
 
+      try {
+        await downloadTask.promise;
+      } catch (err: any) {
+        console.log('err', err);
+      }
+
       const result = await downloadTask.promise;
       if (result.statusCode !== 206 && numberOfThreads > 1) {
         throw new Error(`Thread ${index} failed`);
@@ -340,90 +346,264 @@ export const downloadNormalVideo = async (
   }
 };
 
-// 下载并转换m3u8视频为mp4
-export const downloadM3U8Video = async (
+// 下载普通视频文件(单线程)
+export const downloadNormalVideo = async (
   url: string,
-  directoryPath: string,
   fileName: string,
+  directoryPath: string,
   onProgress: OnProgressCallback,
 ) => {
   try {
-    // 下载m3u8文件
-    const m3u8FilePath = `${directoryPath}/${fileName}.m3u8`;
-    await RNFS.downloadFile({
+    let lastTime = 0; // 上一次时间戳
+    let lastLoaded = 0; // 上一次已下载的字节数
+
+    const filePath = `${directoryPath}/${fileName}`;
+    // 检查目录是否存在
+    const directoryExists = await RNFS.exists(directoryPath);
+    if (!directoryExists) {
+      await RNFS.mkdir(directoryPath); // 创建目录
+    }
+
+    const downloadTask = RNFS.downloadFile({
+      fromUrl: url,
+      toFile: filePath,
+      begin: res => {
+        console.log('Started', res);
+        lastTime = new Date().getTime(); // 初始化时间戳
+        lastLoaded = 0; // 初始化已下载字节数
+      },
+      progress: res => {
+        const percentage = (
+          (res.bytesWritten / res.contentLength) *
+          100
+        ).toFixed(1);
+        const loadedMb = (res.bytesWritten / 1024 / 1024).toFixed(1);
+        const totalMb = (res.contentLength / 1024 / 1024).toFixed(1);
+
+        // 计算下载速度
+        const currentTime = new Date().getTime();
+        const timeDiff = currentTime - lastTime; // 时间差（毫秒）
+        const loadedDiff = res.bytesWritten - lastLoaded; // 数据量差（字节）
+
+        let speed = 0;
+        if (timeDiff > 0 && loadedDiff > 0) {
+          speed = loadedDiff / 1024 / 1024 / (timeDiff / 1000); // MB/s
+        }
+
+        // 更新上次的时间和已下载字节数
+        lastTime = currentTime;
+        lastLoaded = res.bytesWritten;
+
+        onProgress(url, percentage, loadedMb, totalMb, speed.toFixed(1)); // 传递下载速度
+      },
+    });
+
+    const downloadResult = await downloadTask.promise;
+    if (downloadResult.statusCode === 200) {
+      const endTime = new Date().toISOString();
+      return { success: true, endTime };
+    } else {
+      return { success: false, error: 'Download failed' };
+    }
+  } catch (err) {
+    console.error('Error downloading video:', err);
+    return { success: false, error: err };
+  }
+};
+
+export const downloadM3U8Video = async (
+  url: string,
+  fileName: string,
+  directoryPath: string,
+  onProgress: OnProgressCallback,
+) => {
+  try {
+    let lastTime = 0; // 上一次时间戳
+    let lastLoaded = 0; // 上一次已下载的字节数
+    let totalSize = 0; // 总大小（字节）
+    let downloadedSize = 0; // 已下载大小（字节）
+
+    const filePath = `${directoryPath}/${fileName}`;
+    // 检查目录是否存在
+    const directoryExists = await RNFS.exists(directoryPath);
+    if (!directoryExists) {
+      await RNFS.mkdir(directoryPath); // 创建目录
+    }
+
+    // 下载 m3u8 文件
+    const m3u8FilePath = `${directoryPath}/temp.m3u8`;
+    const m3u8DownloadTask = RNFS.downloadFile({
       fromUrl: url,
       toFile: m3u8FilePath,
       begin: res => {
-        onProgress(0, 0, res.contentLength, 0);
+        console.log('Started downloading m3u8 file', res);
+        lastTime = new Date().getTime(); // 初始化时间戳
+        lastLoaded = 0; // 初始化已下载字节数
       },
-      progress: (event: any) => {
-        const percentage = (event.loaded / event.contentLength) * 100;
-        const loadedMb = (event.loaded / 1024 / 1024).toFixed(1);
-        const totalMb = (event.contentLength / 1024 / 1024).toFixed(1);
-        onProgress(percentage, loadedMb, totalMb, 0);
-      },
-    }).promise;
+    });
 
-    // 解析m3u8文件获取ts片段
-    const m3u8Content: any = await readFile(m3u8FilePath);
-    const tsSegments = m3u8Content
-      .split('\n')
-      .filter((line: string) => line.startsWith('http'));
-
-    // 下载所有ts片段
-    const tsFiles: string[] = [];
-    for (let i = 0; i < tsSegments.length; i++) {
-      const tsUrl = tsSegments[i];
-      const tsFileName = `${fileName}_ts_${i}.ts`;
-      const tsFilePath = `${directoryPath}/${tsFileName}`;
-      await RNFS.downloadFile({
-        fromUrl: tsUrl,
-        toFile: tsFilePath,
-        begin: res => {
-          onProgress(0, 0, res.contentLength, 0);
-        },
-        progress: (event: any) => {
-          const percentage = (event.loaded / event.contentLength) * 100;
-          const loadedMb = (event.loaded / 1024 / 1024).toFixed(1);
-          const totalMb = (event.contentLength / 1024 / 1024).toFixed(1);
-          onProgress(percentage, loadedMb, totalMb, 0);
-        },
-      }).promise;
-      tsFiles.push(tsFilePath);
+    const m3u8DownloadResult = await m3u8DownloadTask.promise;
+    if (m3u8DownloadResult.statusCode !== 200) {
+      return { success: false, error: 'Failed to download m3u8 file' };
     }
 
-    // 合并ts片段并转换为mp4
-    const mp4FilePath = `${directoryPath}/${fileName}.mp4`;
-    const concatCommand = tsFiles.map(path => `-i ${path}`).join(' ');
-    const filterComplex =
-      tsFiles.map((_, index) => `[${index}:v:0][${index}:a:0]`).join('') +
-      'concat=n=' +
-      tsFiles.length +
-      ':v=1:a=1[outv][outa]';
-    const command = ` ${concatCommand} -filter_complex "${filterComplex}" -map "[outv]" -map "[outa]" ${mp4FilePath}`;
+    // 解析 m3u8 文件，获取 TS 文件的链接
+    const m3u8Content = await RNFS.readFile(m3u8FilePath, 'utf8');
+    const tsFileUrls = [];
+    const lines = m3u8Content.split('\n');
+    for (const line of lines) {
+      if (!line.startsWith('#') && line.trim() !== '') {
+        tsFileUrls.push(line.trim());
+      }
+    }
 
-    await FFmpegKit.execute(command).then(
-      (session: {
-        returnCode: () => {
-          (): any;
-          new (): any;
-          getValue: { (): string; new (): any };
-        };
-      }) => {
-        if (session.returnCode().getValue() === '0') {
-          // 清理临时文件
-          tsFiles.forEach(file => deleteFile(file));
-          deleteFile(m3u8FilePath);
-          return { success: true };
-        } else {
-          throw new Error('FFmpeg conversion failed');
-        }
-      },
-    );
+    // 创建一个临时目录来存储 TS 文件
+    const tsDirectoryPath = `${directoryPath}/ts_files`;
+    const tsDirectoryExists = await RNFS.exists(tsDirectoryPath);
+    if (!tsDirectoryExists) {
+      await RNFS.mkdir(tsDirectoryPath);
+    }
 
-    return { success: true };
+    // 获取所有 TS 文件的大小并计算总大小
+    for (const tsUrl of tsFileUrls) {
+      const tsFileSize = await getFileSizeByUrl(tsUrl);
+      totalSize += tsFileSize;
+    }
+
+    // 下载所有的 TS 文件
+    const tsDownloadPromises = [];
+    for (let i = 0; i < tsFileUrls.length; i++) {
+      const tsUrl = tsFileUrls[i];
+      const tsFilePath = `${tsDirectoryPath}/${i}.ts`;
+      tsDownloadPromises.push(
+        new Promise<void>(async resolve => {
+          try {
+            const tsDownloadTask = RNFS.downloadFile({
+              fromUrl: tsUrl,
+              toFile: tsFilePath,
+            });
+
+            // 使用 stats 方法来监听页面下载进度
+            const intervalId = setInterval(async () => {
+              try {
+                const stats = await RNFS.stat(tsFilePath);
+                if (stats.isFile()) {
+                  downloadedSize = stats.size;
+                  const percentage =
+                    totalSize > 0
+                      ? ((downloadedSize / totalSize) * 100).toFixed(1)
+                      : '0.0';
+                  const loadedMb = (downloadedSize / 1024 / 1024).toFixed(1);
+                  const totalMb = (totalSize / 1024 / 1024).toFixed(1);
+
+                  // 计算下载速度
+                  const currentTime = new Date().getTime();
+                  const timeDiff = currentTime - lastTime; // 时间差（毫秒）
+                  const loadedDiff = downloadedSize - lastLoaded; // 数据量差（字节）
+
+                  let speed = 0;
+                  if (timeDiff > 0 && loadedDiff > 0) {
+                    speed = loadedDiff / 1024 / 1024 / (timeDiff / 1000); // MB/s
+                  }
+
+                  // 更新上次的时间和已下载字节数
+                  lastTime = currentTime;
+                  lastLoaded = downloadedSize;
+
+                  onProgress(
+                    url,
+                    percentage,
+                    loadedMb,
+                    totalMb,
+                    speed.toFixed(1),
+                  ); // 传递下载速度
+                }
+              } catch (err) {
+                // 文件可能还未创建
+              }
+            }, 1000);
+
+            tsDownloadTask.promise.then(async result => {
+              clearInterval(intervalId);
+              if (result.statusCode === 200) {
+                const fileStat = await RNFS.stat(tsFilePath);
+                downloadedSize = fileStat.size;
+                const percentage =
+                  totalSize > 0
+                    ? ((downloadedSize / totalSize) * 100).toFixed(1)
+                    : '0.0';
+                const loadedMb = (downloadedSize / 1024 / 1024).toFixed(1);
+                const totalMb = (totalSize / 1024 / 1024).toFixed(1);
+
+                // 计算下载速度
+                const currentTime = new Date().getTime();
+                const timeDiff = currentTime - lastTime; // 时间差（毫秒）
+                const loadedDiff = downloadedSize - lastLoaded; // 数据量差（字节）
+
+                let speed = 0;
+                if (timeDiff > 0 && loadedDiff > 0) {
+                  speed = loadedDiff / 1024 / 1024 / (timeDiff / 1000); // MB/s
+                }
+
+                // 更新上次的时间和已下载字节数
+                lastTime = currentTime;
+                lastLoaded = downloadedSize;
+
+                onProgress(
+                  url,
+                  percentage,
+                  loadedMb,
+                  totalMb,
+                  speed.toFixed(1),
+                ); // 传递下载速度
+
+                resolve();
+              } else {
+                resolve();
+              }
+            });
+          } catch (err) {
+            resolve();
+          }
+        }),
+      );
+    }
+
+    await Promise.all(tsDownloadPromises);
+
+    // 合并所有的 TS 文件为一个 MP4 文件
+    const tsFiles = await RNFS.readDir(tsDirectoryPath);
+    const tsFilePaths = tsFiles.map(file => file.path);
+    const mp4Content = [];
+    for (const tsFilePath of tsFilePaths) {
+      const tsFileContent = await RNFS.readFile(tsFilePath, 'base64');
+      mp4Content.push(tsFileContent);
+    }
+    await RNFS.writeFile(filePath, mp4Content.join(''), 'base64');
+
+    // 清理临时文件
+    await RNFS.unlink(m3u8FilePath);
+    await deleteFolder(tsDirectoryPath);
+
+    const endTime = new Date().toISOString();
+    return { success: true, endTime };
   } catch (err) {
-    console.error('Error downloading and converting m3u8 video:', err);
+    console.error('Error downloading M3U8 video:', err);
     return { success: false, error: err };
+  }
+};
+
+// 替代 RNFS.getFileSize 的方法
+const getFileSizeByUrl = async (url: string): Promise<number> => {
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    const contentLength = response.headers.get('content-length');
+    if (contentLength) {
+      return parseInt(contentLength, 10);
+    }
+    return 0;
+  } catch (err) {
+    console.error('Failed to get file size:', err);
+    return 0;
   }
 };
