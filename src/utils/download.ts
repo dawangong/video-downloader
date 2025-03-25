@@ -24,12 +24,18 @@ export const downloadNormalVideo2 = async (
   onProgress: OnProgressCallback,
   numberOfThreads: number = 10, // 默认使用10个线程
 ) => {
+  const MAX_RETRIES = 3; // 每个分块下载最大重试次数
   try {
-    // 检查服务器是否支持分块下载
-    const response = await fetch(url, { method: 'HEAD' });
-    const acceptRanges = response.headers.get('accept-ranges');
+    // 检查目标目录是否存在，不存在则创建
+    if (!(await RNFS.exists(directoryPath))) {
+      await RNFS.mkdir(directoryPath);
+    }
+
+    // 使用 HEAD 请求获取文件信息
+    const headResponse = await fetch(url, { method: 'HEAD' });
+    const acceptRanges = headResponse.headers.get('accept-ranges');
     const contentLength = parseInt(
-      response.headers.get('content-length') || '0',
+      headResponse.headers.get('content-length') || '0',
       10,
     );
 
@@ -38,9 +44,15 @@ export const downloadNormalVideo2 = async (
       return { success: false, error: '无法获取文件大小' };
     }
 
+    // 创建临时文件夹保存分块数据
+    const tempFolder = `${directoryPath}/${fileName.replace('.mp4', '')}_tmp`;
+    if (!(await RNFS.exists(tempFolder))) {
+      await RNFS.mkdir(tempFolder);
+    }
+
+    // 根据是否支持分块下载决定分块方案
     let chunks: { start: number; end: number }[] = [];
     if (acceptRanges === 'bytes') {
-      // 服务器支持分块下载
       const chunkSize = Math.ceil(contentLength / numberOfThreads);
       for (let i = 0; i < numberOfThreads; i++) {
         const start = i * chunkSize;
@@ -48,99 +60,120 @@ export const downloadNormalVideo2 = async (
         chunks.push({ start, end });
       }
     } else {
-      // 服务器不支持分块下载，回退到单线程下载
-      console.warn(
-        'Server does not support byte ranges, falling back to single-thread download',
-      );
+      console.warn('服务器不支持分块下载，使用单线程下载');
       chunks = [{ start: 0, end: contentLength - 1 }];
       numberOfThreads = 1;
     }
 
-    // 并行下载每个块
-    const downloadPromises = chunks.map(async (chunk, index) => {
-      const tempFilePath = `${directoryPath}/${fileName}.${index}.tmp`;
-      console.log('Temp file path:', tempFilePath); // 调试日志
+    // 定义下载单个分块的方法，增加重试机制
+    const downloadChunk = async (
+      chunk: { start: number; end: number },
+      index: number,
+    ): Promise<{ filePath: string; start: number }> => {
+      const tempFilePath = `${tempFolder}/${index}.tmp.mp4`;
+      let attempt = 0;
+      while (attempt < MAX_RETRIES) {
+        try {
+          const downloadTask = RNFS.downloadFile({
+            fromUrl: url,
+            toFile: tempFilePath,
+            headers: {
+              Range: `bytes=${chunk.start}-${chunk.end}`,
+            },
+            begin: res => {
+              if (res.statusCode !== 206 && numberOfThreads > 1) {
+                throw new Error(
+                  `Thread ${index} 开始下载失败，状态码：${res.statusCode}`,
+                );
+              }
+              console.log(`线程 ${index} 开始下载：`, res);
+            },
+            progress: res => {
+              const totalBytes = chunk.end - chunk.start + 1;
+              const percentage = (
+                (res.bytesWritten / totalBytes) *
+                100
+              ).toFixed(1);
+              const loadedMb = (res.bytesWritten / 1024 / 1024).toFixed(1);
+              const totalMb = (totalBytes / 1024 / 1024).toFixed(1);
+              // 可根据任务开始时间调整速度计算
+              const speed = (
+                res.bytesWritten /
+                1024 /
+                1024 /
+                (Date.now() / 1000)
+              ).toFixed(1);
+              onProgress(url, percentage, loadedMb, totalMb, speed);
+            },
+          });
 
-      const downloadTask = RNFS.downloadFile({
-        fromUrl: url,
-        toFile: tempFilePath,
-        headers: {
-          Range: `bytes=${chunk.start}-${chunk.end}`,
-        },
-        begin: res => {
-          console.log(`Thread ${index} started`, res);
-          if (res.statusCode !== 206 && numberOfThreads > 1) {
-            console.error(`Thread ${index} failed to start`, res);
-            throw new Error(`Thread ${index} failed to start`);
+          const result = await downloadTask.promise;
+          if (result.statusCode !== 206 && numberOfThreads > 1) {
+            throw new Error(
+              `线程 ${index} 下载失败，状态码：${result.statusCode}`,
+            );
           }
-        },
-        progress: res => {
-          const percentage = (
-            (res.bytesWritten / (chunk.end - chunk.start + 1)) *
-            100
-          ).toFixed(1);
-          const loadedMb = (res.bytesWritten / 1024 / 1024).toFixed(1);
-          const totalMb = (contentLength / 1024 / 1024).toFixed(1);
-          const speed = (
-            res.bytesWritten /
-            1024 /
-            1024 /
-            (Date.now() / 1000)
-          ).toFixed(1);
-          console.log(`Thread ${index} progress`);
-          onProgress(url, percentage, loadedMb, totalMb, speed); // 传递所有5个参数
-        },
-      });
 
-      try {
-        await downloadTask.promise;
-      } catch (err: any) {
-        console.log('err', err);
+          // 检查文件是否存在且大小正确
+          if (!(await RNFS.exists(tempFilePath))) {
+            throw new Error(`线程 ${index} 未能创建文件`);
+          }
+          const fileStats = await RNFS.stat(tempFilePath);
+          if (fileStats.size !== chunk.end - chunk.start + 1) {
+            throw new Error(`线程 ${index} 文件大小不匹配`);
+          }
+
+          console.log(`线程 ${index} 下载成功`);
+          return { filePath: tempFilePath, start: chunk.start };
+        } catch (err) {
+          attempt++;
+          console.warn(`线程 ${index} 第 ${attempt} 次尝试失败：`, err);
+          if (attempt >= MAX_RETRIES) {
+            throw new Error(
+              `线程 ${index} 超过最大重试次数，失败原因：${err.message || err}`,
+            );
+          }
+          // 可加入短暂延时后重试
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
+      // 若重试后依旧失败，则抛出错误
+      throw new Error(`线程 ${index} 下载失败`);
+    };
 
-      const result = await downloadTask.promise;
-      if (result.statusCode !== 206 && numberOfThreads > 1) {
-        throw new Error(`Thread ${index} failed`);
-      }
-
-      // 检查文件是否真的被创建
-      if (!(await RNFS.exists(tempFilePath))) {
-        throw new Error(`Thread ${index} failed to create file`);
-      }
-
-      // 检查文件大小是否正确
-      const fileStats = await RNFS.stat(tempFilePath);
-      if (fileStats.size !== chunk.end - chunk.start + 1) {
-        throw new Error(`Thread ${index} file size mismatch`);
-      }
-
-      return { filePath: tempFilePath, start: chunk.start };
-    });
-
-    console.log('wait download start');
-    // 等待所有块下载完成
+    // 并行下载所有分块
+    const downloadPromises = chunks.map((chunk, index) =>
+      downloadChunk(chunk, index),
+    );
+    console.log('开始并行下载所有分块');
     const chunkResults = await Promise.all(downloadPromises);
-    console.log('wait download end');
+    console.log('所有分块下载完成');
 
-    console.log('merge file start');
-    // 合并文件
-    const filePath = `${directoryPath}/${fileName}`;
-    for (const chunkResult of chunkResults) {
-      // 检查块文件是否存在
-      if (!(await RNFS.exists(chunkResult.filePath))) {
-        throw new Error(`Chunk file ${chunkResult.filePath} not found`);
-      }
-
-      const data = await RNFS.readFile(chunkResult.filePath, 'base64');
-      await RNFS.appendFile(filePath, data, 'base64');
+    // 合并所有分块文件
+    const finalFilePath = `${directoryPath}/${fileName}`;
+    if (await RNFS.exists(finalFilePath)) {
+      await RNFS.unlink(finalFilePath);
     }
-    console.log('merge file end');
+    for (const chunkResult of chunkResults.sort((a, b) => a.start - b.start)) {
+      if (!(await RNFS.exists(chunkResult.filePath))) {
+        throw new Error(`分块文件 ${chunkResult.filePath} 不存在`);
+      }
+      const data = await RNFS.readFile(chunkResult.filePath, 'base64');
+      await RNFS.appendFile(finalFilePath, data, 'base64');
+    }
+    console.log('文件合并完成');
+
+    // 删除临时文件夹及其内容
+    if (await RNFS.exists(tempFolder)) {
+      await RNFS.unlink(tempFolder);
+      console.log('临时文件夹已删除');
+    }
 
     const endTime = new Date().toISOString();
     return { success: true, endTime };
   } catch (err: any) {
-    console.error('Error downloading video:', err);
-    return { success: false, error: err.message || 'Unknown error' };
+    console.error('下载视频时发生错误:', err);
+    return { success: false, error: err.message || '未知错误' };
   }
 };
 

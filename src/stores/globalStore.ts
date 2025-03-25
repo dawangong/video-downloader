@@ -78,7 +78,7 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
     const { dir, downList, updateDownList, addDownList, updateCacheList } =
       get();
     const isM3u8 = m3u8Link(url);
-    const downloadFn = isM3u8 ? downloadM3U8Video : downloadNormalVideo;
+    const downloadFn = isM3u8 ? downloadM3U8Video : downloadNormalVideo2;
     addDownList(name, url);
     await downloadFn(
       url,
