@@ -10,7 +10,7 @@ import {
 import { Icon, Toast } from '@ant-design/react-native';
 import { Divider } from 'react-native-paper';
 
-import { Header } from '@/components/index';
+import { Header, Loading } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import MyColors from '@/constants/colors';
@@ -69,12 +69,23 @@ const VideoList = () => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const { dir, cacheList, updateCacheList } = useGlobalStore();
+  const { dir, cacheList, readLoading, updateCacheList } = useGlobalStore();
   const [toastApi, contextHolder] = Toast.useToast();
 
+  const loadFile = async (content?: string) => {
+    await updateCacheList();
+    toastApi.show({
+      content: content || '视频加载成功',
+      position: 'center',
+      mask: false,
+    });
+  };
+
   useMount(() => {
-    updateCacheList();
+    loadFile();
   });
+
+  console.log('readLoading', readLoading);
 
   return (
     <View style={pageStyle}>
@@ -87,16 +98,13 @@ const VideoList = () => {
             name="reload"
             color={MyColors.black}
             onPress={async () => {
-              await updateCacheList();
-              toastApi.show({
-                content: '列表刷新成功',
-                position: 'center',
-                mask: false,
-              });
+              loadFile('列表刷新成功');
             }}
           />
         </View>
-        {cacheList.length > 0 ? (
+        {readLoading ? (
+          <Loading />
+        ) : cacheList.length > 0 ? (
           <FlatList
             style={styles.list}
             data={cacheList}

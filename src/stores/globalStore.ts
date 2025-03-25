@@ -30,6 +30,7 @@ interface GlobalState {
   maxTask: number;
   downList: any[];
   cacheList: any[];
+  readLoading: boolean;
   setDir(dir: string): void;
   setMaxTask(v: number): void;
   setDirAndStorage(dir: string): void;
@@ -39,6 +40,7 @@ interface GlobalState {
   setCacheList(list: any): void;
   updateCacheList(): void;
   updateDownList: OnProgressCallback;
+  setReadLoading(isLoading: boolean): boolean;
 }
 
 const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
@@ -48,6 +50,7 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
   // cacheList: generateArrayWithIncrementalId(100, data),
   downList: [],
   cacheList: [],
+  readLoading: true,
   setDir(dir) {
     set(() => ({
       dir,
@@ -128,10 +131,18 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
     }));
   },
   async updateCacheList() {
-    const { dir, setCacheList } = get();
+    const { dir, setCacheList, setReadLoading } = get();
+    setReadLoading(true);
     const list = await readVideoFiles(dir);
-    console.log(list);
     setCacheList(list);
+    setReadLoading(false);
+    console.log('load ok', list);
+  },
+  setReadLoading(v) {
+    set(() => ({
+      readLoading: v,
+    }));
+    return v;
   },
 }));
 
