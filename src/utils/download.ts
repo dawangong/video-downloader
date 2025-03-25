@@ -52,6 +52,38 @@ export const deleteFile = async (path: string) => {
   }
 };
 
+/**
+ * 删除文件夹（递归删除）
+ * @param {string} folderPath - 要删除的文件夹路径
+ */
+export const deleteFolder = async (folderPath: string) => {
+  try {
+    // 检查路径是否存在
+    const stats = await RNFS.stat(folderPath);
+    if (stats.isDirectory()) {
+      // 如果是目录，递归删除目录内的所有内容
+      const items = await RNFS.readDir(folderPath);
+      for (const item of items) {
+        const itemPath = `${folderPath}/${item.name}`;
+        const itemStats = await RNFS.stat(itemPath);
+        if (itemStats.isDirectory()) {
+          // 如果是子目录，递归调用删除函数
+          await deleteFolder(itemPath);
+        } else {
+          // 如果是文件，直接删除
+          await RNFS.unlink(itemPath);
+        }
+      }
+    }
+    // 删除当前目录
+    await RNFS.unlink(folderPath);
+    console.log(`Folder deleted successfully: ${folderPath}`);
+  } catch (error) {
+    console.error(`Error deleting folder: ${folderPath}`, error);
+    throw error; // 可以选择抛出错误，让调用者处理
+  }
+};
+
 // 读取目录下所有视频文件
 export const readVideoFiles = async (directoryPath: string) => {
   if (!directoryPath) {
