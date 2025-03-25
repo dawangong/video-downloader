@@ -49,8 +49,6 @@ const Download = () => {
 
   const { downList } = useGlobalStore();
 
-  console.log(downList, 'downList');
-
   return (
     <View style={pageStyle}>
       <Header model="setting" />
