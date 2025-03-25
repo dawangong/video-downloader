@@ -113,11 +113,7 @@ export const selectDownloadDirectory = async () => {
     const path = await convertContentUriToRealPath(uri);
     return path || null;
   } catch (err: any) {
-    if (err.message === 'User cancelled') {
-      console.log('User cancelled picking directory');
-    } else {
-      console.error('Error picking directory:', err);
-    }
+    console.error(err);
     return null;
   }
 };
