@@ -224,62 +224,119 @@ export const downloadNormalVideo = async (
   fileName: string,
   directoryPath: string,
   onProgress: OnProgressCallback,
+  numberOfThreads: number = 10, // 默认使用10个线程
 ) => {
   try {
-    let lastTime = 0; // 上一次时间戳
-    let lastLoaded = 0; // 上一次已下载的字节数
+    // 检查服务器是否支持分块下载
+    const response = await fetch(url, { method: 'HEAD' });
+    const acceptRanges = response.headers.get('accept-ranges');
+    const contentLength = parseInt(
+      response.headers.get('content-length') || '0',
+      10,
+    );
 
-    const filePath = `${directoryPath}/${fileName}`;
-    // 检查目录是否存在
-    const directoryExists = await RNFS.exists(directoryPath);
-    if (!directoryExists) {
-      await RNFS.mkdir(directoryPath); // 创建目录
+    if (!contentLength) {
+      console.error('无法获取文件大小');
+      return { success: false, error: '无法获取文件大小' };
     }
 
-    const downloadTask = RNFS.downloadFile({
-      fromUrl: url,
-      toFile: filePath,
-      begin: res => {
-        console.log('Started', res);
-        lastTime = new Date().getTime(); // 初始化时间戳
-        lastLoaded = 0; // 初始化已下载字节数
-      },
-      progress: res => {
-        const percentage = (
-          (res.bytesWritten / res.contentLength) *
-          100
-        ).toFixed(1);
-        const loadedMb = (res.bytesWritten / 1024 / 1024).toFixed(1);
-        const totalMb = (res.contentLength / 1024 / 1024).toFixed(1);
+    let chunks: { start: number; end: number }[] = [];
+    if (acceptRanges === 'bytes') {
+      // 服务器支持分块下载
+      const chunkSize = Math.ceil(contentLength / numberOfThreads);
+      for (let i = 0; i < numberOfThreads; i++) {
+        const start = i * chunkSize;
+        const end = Math.min(start + chunkSize - 1, contentLength - 1);
+        chunks.push({ start, end });
+      }
+    } else {
+      // 服务器不支持分块下载，回退到单线程下载
+      console.warn(
+        'Server does not support byte ranges, falling back to single-thread download',
+      );
+      chunks = [{ start: 0, end: contentLength - 1 }];
+      numberOfThreads = 1;
+    }
 
-        // 计算下载速度
-        const currentTime = new Date().getTime();
-        const timeDiff = currentTime - lastTime; // 时间差（毫秒）
-        const loadedDiff = res.bytesWritten - lastLoaded; // 数据量差（字节）
+    // 并行下载每个块
+    const downloadPromises = chunks.map(async (chunk, index) => {
+      const tempFilePath = `${directoryPath}/${fileName}.${index}.tmp`;
+      console.log('Temp file path:', tempFilePath); // 调试日志
 
-        let speed = 0;
-        if (timeDiff > 0 && loadedDiff > 0) {
-          speed = loadedDiff / 1024 / 1024 / (timeDiff / 1000); // MB/s
-        }
+      const downloadTask = RNFS.downloadFile({
+        fromUrl: url,
+        toFile: tempFilePath,
+        headers: {
+          Range: `bytes=${chunk.start}-${chunk.end}`,
+        },
+        begin: res => {
+          console.log(`Thread ${index} started`, res);
+          if (res.statusCode !== 206 && numberOfThreads > 1) {
+            console.error(`Thread ${index} failed to start`, res);
+            throw new Error(`Thread ${index} failed to start`);
+          }
+        },
+        progress: res => {
+          const percentage = (
+            (res.bytesWritten / (chunk.end - chunk.start + 1)) *
+            100
+          ).toFixed(1);
+          const loadedMb = (res.bytesWritten / 1024 / 1024).toFixed(1);
+          const totalMb = (contentLength / 1024 / 1024).toFixed(1);
+          const speed = (
+            res.bytesWritten /
+            1024 /
+            1024 /
+            (Date.now() / 1000)
+          ).toFixed(1);
+          console.log(`Thread ${index} progress`);
+          onProgress(url, percentage, loadedMb, totalMb, speed); // 传递所有5个参数
+        },
+      });
 
-        // 更新上次的时间和已下载字节数
-        lastTime = currentTime;
-        lastLoaded = res.bytesWritten;
+      const result = await downloadTask.promise;
+      if (result.statusCode !== 206 && numberOfThreads > 1) {
+        throw new Error(`Thread ${index} failed`);
+      }
 
-        onProgress(url, percentage, loadedMb, totalMb, speed.toFixed(1)); // 传递下载速度
-      },
+      // 检查文件是否真的被创建
+      if (!(await RNFS.exists(tempFilePath))) {
+        throw new Error(`Thread ${index} failed to create file`);
+      }
+
+      // 检查文件大小是否正确
+      const fileStats = await RNFS.stat(tempFilePath);
+      if (fileStats.size !== chunk.end - chunk.start + 1) {
+        throw new Error(`Thread ${index} file size mismatch`);
+      }
+
+      return { filePath: tempFilePath, start: chunk.start };
     });
 
-    const downloadResult = await downloadTask.promise;
-    if (downloadResult.statusCode === 200) {
-      const endTime = new Date().toISOString();
-      return { success: true, endTime };
-    } else {
-      return { success: false, error: 'Download failed' };
+    console.log('wait download start');
+    // 等待所有块下载完成
+    const chunkResults = await Promise.all(downloadPromises);
+    console.log('wait download end');
+
+    console.log('merge file start');
+    // 合并文件
+    const filePath = `${directoryPath}/${fileName}`;
+    for (const chunkResult of chunkResults) {
+      // 检查块文件是否存在
+      if (!(await RNFS.exists(chunkResult.filePath))) {
+        throw new Error(`Chunk file ${chunkResult.filePath} not found`);
+      }
+
+      const data = await RNFS.readFile(chunkResult.filePath, 'base64');
+      await RNFS.appendFile(filePath, data, 'base64');
     }
-  } catch (err) {
+    console.log('merge file end');
+
+    const endTime = new Date().toISOString();
+    return { success: true, endTime };
+  } catch (err: any) {
     console.error('Error downloading video:', err);
-    return { success: false, error: err };
+    return { success: false, error: err.message || 'Unknown error' };
   }
 };
 
