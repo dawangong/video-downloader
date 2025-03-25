@@ -229,7 +229,7 @@ export const downloadM3U8Video = async (
     }
 
     // 下载 m3u8 文件
-    const m3u8FilePath = `${directoryPath}/temp.m3u8`;
+    const m3u8FilePath = `${directoryPath}/${fileName}_temp.m3u8`;
     const m3u8DownloadTask = RNFS.downloadFile({
       fromUrl: url,
       toFile: m3u8FilePath,
@@ -256,7 +256,7 @@ export const downloadM3U8Video = async (
     }
 
     // 创建一个临时目录来存储 TS 文件
-    const tsDirectoryPath = `${directoryPath}/ts_files`;
+    const tsDirectoryPath = `${directoryPath}/${fileName}_ts`;
     const tsDirectoryExists = await RNFS.exists(tsDirectoryPath);
     if (!tsDirectoryExists) {
       await RNFS.mkdir(tsDirectoryPath);
