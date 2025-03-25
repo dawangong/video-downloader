@@ -1,12 +1,11 @@
 import RNFS from 'react-native-fs';
-// import axios from 'axios';
 // @ts-ignore
 import { FFmpegKit } from 'ffmpeg-kit-react-native';
-// import { generateValidPath } from '@/utils/tools';
 import { PlayPattern } from '@/constants/rules';
 import { format } from 'date-fns';
 import RNVideoInfo from 'react-native-video-info';
 // import { createThumbnail } from 'react-native-create-thumbnail';
+import { toByteArray, fromByteArray } from 'base64-js';
 
 // 创建文件
 export const createFile = async (path: string, content: any) => {
@@ -423,7 +422,7 @@ export const downloadM3U8Video = async (
     let totalSize = 0; // 总大小（字节）
     let downloadedSize = 0; // 已下载大小（字节）
 
-    const filePath = `${directoryPath}/${fileName}`;
+    const outputPath = `${directoryPath}/${fileName.replace('.m3u8', '.mp4')}`;
     // 检查目录是否存在
     const directoryExists = await RNFS.exists(directoryPath);
     if (!directoryExists) {
@@ -574,12 +573,12 @@ export const downloadM3U8Video = async (
     // 合并所有的 TS 文件为一个 MP4 文件
     const tsFiles = await RNFS.readDir(tsDirectoryPath);
     const tsFilePaths = tsFiles.map(file => file.path);
-    const mp4Content = [];
-    for (const tsFilePath of tsFilePaths) {
-      const tsFileContent = await RNFS.readFile(tsFilePath, 'base64');
-      mp4Content.push(tsFileContent);
-    }
-    await RNFS.writeFile(filePath, mp4Content.join(''), 'base64');
+    const _tsFilePaths = tsFilePaths.sort((a: any, b: any) => {
+      const numA = parseInt(a.match(/\d+/)[0], 10);
+      const numB = parseInt(b.match(/\d+/)[0], 10);
+      return numA - numB;
+    });
+    mergeTsFiles(_tsFilePaths, outputPath);
 
     // 清理临时文件
     await RNFS.unlink(m3u8FilePath);
@@ -607,3 +606,38 @@ const getFileSizeByUrl = async (url: string): Promise<number> => {
     return 0;
   }
 };
+
+async function mergeTsFiles(tsFilePaths: any, outputFilePath: string) {
+  // 存放解码后的 Uint8Array 数组
+  const arrays = [];
+
+  for (const tsFilePath of tsFilePaths) {
+    // 读取 Base64 格式内容
+    const base64Data = await RNFS.readFile(tsFilePath, 'base64');
+    // 解码为 Uint8Array
+    const byteArray = toByteArray(base64Data);
+    arrays.push(byteArray);
+  }
+
+  // 计算拼接后总长度
+  const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0);
+  const combined = new Uint8Array(totalLength);
+
+  // 合并所有 Uint8Array
+  let offset = 0;
+  for (const arr of arrays) {
+    combined.set(arr, offset);
+    offset += arr.length;
+  }
+
+  // 将合并后的二进制数据重新编码为 Base64
+  const finalBase64 = fromByteArray(combined);
+
+  try {
+    // 写入文件
+    await RNFS.writeFile(outputFilePath, finalBase64, 'base64');
+    console.log('合并写入成功', outputFilePath);
+  } catch (err) {
+    console.error(err);
+  }
+}

@@ -85,24 +85,6 @@ export const convertContentUriToRealPath = (uri: string) => {
   return null;
 };
 
-// 生成合法路径的函数
-// export const generateValidPath = (
-//   userDefinedPath: string,
-//   fileName: string,
-// ): string => {
-//   // 获取外部存储路径
-//   const externalStoragePath = RNFS.ExternalStorageDirectoryPath;
-
-//   // 提取用户自定义路径中 /storage/emulated/0 之后的部分
-//   const userPathParts = userDefinedPath.split('/storage/emulated/0/');
-//   const relativePath = userPathParts.length > 1 ? userPathParts[1] : '';
-
-//   // 拼接完整的路径
-//   const fullPath = `${externalStoragePath}/${relativePath}${fileName}`;
-
-//   return fullPath;
-// };
-
 // 选择自定义下载目录
 export const selectDownloadDirectory = async () => {
   try {
