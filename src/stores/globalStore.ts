@@ -4,11 +4,11 @@ import {
   downloadNormalVideo,
   downloadM3U8Video,
   OnProgressCallback,
-  readVideoFiles,
 } from './../utils/download';
 
 import {
   // generateArrayWithIncrementalId,
+  readVideoFiles,
   m3u8Link,
 } from '@/utils/tools';
 import { saveData } from '@/utils/cache';
