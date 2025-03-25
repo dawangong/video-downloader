@@ -74,23 +74,26 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
     saveData('maxTask', v);
   },
   async downloadVideo(url: string, name: string, successFn: any) {
+    const { dir, downList, updateDownList, addDownList, updateCacheList } =
+      get();
     const isM3u8 = m3u8Link(url);
     const downloadFn = isM3u8 ? downloadM3U8Video : downloadNormalVideo;
-    get().addDownList(name, url);
+    addDownList(name, url);
     await downloadFn(
       url,
       name,
-      get().dir,
+      dir,
       (_url, percentage, loadedMb, totalMb, speed) => {
         console.log('info', percentage, loadedMb, totalMb, speed);
-        get().updateDownList(_url, percentage, loadedMb, totalMb, speed);
+        updateDownList(_url, percentage, loadedMb, totalMb, speed);
       },
     );
-    const list = get().downList;
-    const downList = list.filter((it: any) => it.url !== url);
+    const list = downList;
+    const dl = list.filter((it: any) => it.url !== url);
     successFn(name);
+    updateCacheList();
     set(() => ({
-      downList,
+      downList: dl,
     }));
   },
   addDownList(name, url) {
