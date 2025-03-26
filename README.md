@@ -1,4 +1,4 @@
-### iOS
+### IOS
 
 For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
 
@@ -14,10 +14,19 @@ Then, and every time you update your native dependencies, run:
 bundle exec pod install
 ```
 
-### Permission add
+### Permission Add
 
 - android
   - android/app/src/main/AndroidManifest.xml
 - ios
   - ios/videoDownloader/Info.plist
   - ios/Podfile
+
+### Build App
+
+- android
+
+  - cd android
+  - ./gradlew assembleRelease
+
+- ios
