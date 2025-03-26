@@ -83,9 +83,9 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
       url,
       name,
       dir,
-      (_url, percentage, loadedMb, totalMb, speed) => {
+      (_url, percentage, loadedMb, totalMb, speed, status) => {
         console.log('info', percentage, loadedMb, totalMb, speed);
-        updateDownList(_url, percentage, loadedMb, totalMb, speed);
+        updateDownList(_url, percentage, loadedMb, totalMb, speed, status);
       },
     );
     const list = downList;
@@ -111,7 +111,7 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
       downList,
     }));
   },
-  updateDownList(url, percentage, loadedMb, totalMb, speed) {
+  updateDownList(url, percentage, loadedMb, totalMb, speed, status) {
     const downList = get().downList.map((it: any) => {
       if (it.url === url) {
         return {
@@ -120,6 +120,7 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
           downSize: loadedMb,
           size: totalMb,
           speed,
+          status,
         };
       }
       return it;

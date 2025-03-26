@@ -7,6 +7,7 @@ import {
   deleteFile,
   throttle,
 } from './tools';
+import downloadManager from './DownloadManage';
 
 export type OnProgressCallback = (
   url: string,
@@ -14,6 +15,7 @@ export type OnProgressCallback = (
   loadedMb: string,
   totalMb: string,
   speed: string,
+  status: 'downloading' | 'error',
 ) => void;
 
 // 下载普通视频文件(多线程)
@@ -21,19 +23,12 @@ export const downloadNormalVideo = async (
   url: string,
   fileName: string,
   directoryPath: string,
-  onProgress: (
-    url: string,
-    percentage: string,
-    loadedMb: string,
-    totalMb: string,
-    speed: string,
-  ) => void,
+  onProgress: OnProgressCallback,
   numberOfThreads: number = 10, // 默认使用10个线程
 ) => {
   const MAX_RETRIES = 10; // 每个分块下载最大重试次数
 
   try {
-    // 获取文件名和扩展名
     const { extension } = getFileNameAndExtension(url);
 
     // 检查目标目录是否存在
@@ -51,6 +46,7 @@ export const downloadNormalVideo = async (
 
     if (!contentLength) {
       console.error('无法获取文件大小');
+      onProgress(url, '0.0', '0.0', '0.0', '0.0', 'error'); // Report error
       return { success: false, error: '无法获取文件大小' };
     }
 
@@ -63,15 +59,16 @@ export const downloadNormalVideo = async (
       await RNFS.mkdir(tempFolder);
     }
 
-    // 统计全局进度
+    // 初始化下载状态
+    downloadManager.startDownload(url, numberOfThreads);
+
     let totalDownloaded = 0;
     const progressMap = new Array(numberOfThreads).fill(0);
-    const startTime = Date.now(); // 记录下载起始时间
+    const startTime = Date.now();
 
     // 限制 onProgress 触发频率（500ms 一次）
     const throttledOnProgress = throttle(onProgress, 500);
 
-    // 计算分块
     let chunks: { start: number; end: number }[] = [];
     if (acceptRanges === 'bytes') {
       const chunkSize = Math.ceil(contentLength / numberOfThreads);
@@ -86,7 +83,6 @@ export const downloadNormalVideo = async (
       numberOfThreads = 1;
     }
 
-    // 下载单个分块的方法
     const downloadChunk = async (
       chunk: { start: number; end: number },
       index: number,
@@ -108,7 +104,6 @@ export const downloadNormalVideo = async (
               }
             },
             progress: res => {
-              // 计算全局进度
               const prevProgress = progressMap[index];
               progressMap[index] = res.bytesWritten;
               totalDownloaded += progressMap[index] - prevProgress;
@@ -119,13 +114,13 @@ export const downloadNormalVideo = async (
               ).toFixed(1);
               const loadedMb = (totalDownloaded / 1024 / 1024).toFixed(1);
               const totalMb = (contentLength / 1024 / 1024).toFixed(1);
-              const elapsedTime = (Date.now() - startTime) / 1000; // 秒
+              const elapsedTime = (Date.now() - startTime) / 1000;
               const downloadSpeed = (
                 totalDownloaded /
                 1024 /
                 1024 /
                 elapsedTime
-              ).toFixed(2); // MB/s
+              ).toFixed(2);
 
               throttledOnProgress(
                 url,
@@ -133,6 +128,7 @@ export const downloadNormalVideo = async (
                 loadedMb,
                 totalMb,
                 downloadSpeed,
+                'downloading', // Pass 'downloading' status
               );
             },
           });
@@ -144,20 +140,22 @@ export const downloadNormalVideo = async (
             );
           }
 
-          // 验证文件
           if (!(await RNFS.exists(tempFilePath))) {
             throw new Error(`线程 ${index} 未能创建文件`);
           }
+
           const fileStats = await RNFS.stat(tempFilePath);
           if (fileStats.size !== chunk.end - chunk.start + 1) {
             throw new Error(`线程 ${index} 文件大小不匹配`);
           }
 
+          downloadManager.updateDownloadStatus(url, index);
           return { filePath: tempFilePath, start: chunk.start };
         } catch (err) {
           attempt++;
           console.warn(`线程 ${index} 第 ${attempt} 次尝试失败：`, err);
           if (attempt >= MAX_RETRIES) {
+            onProgress(url, '0.0', '0.0', '0.0', '0.0', 'error'); // Report error after max retries
             throw new Error(`线程 ${index} 超过最大重试次数`);
           }
           await new Promise(resolve => setTimeout(resolve, 1000));
@@ -166,41 +164,33 @@ export const downloadNormalVideo = async (
       throw new Error(`线程 ${index} 下载失败`);
     };
 
-    // 并行下载
-    console.log('开始并行下载所有分块');
     const chunkResults = await Promise.all(
       chunks.map((chunk, index) => downloadChunk(chunk, index)),
     );
-    console.log('所有分块下载完成');
 
-    // 合并分块
     const finalFilePath = `${directoryPath}/${fileName}`;
     if (await RNFS.exists(finalFilePath)) {
       await deleteFile(finalFilePath);
     }
 
     for (const chunkResult of chunkResults.sort((a, b) => a.start - b.start)) {
-      if (!(await RNFS.exists(chunkResult.filePath))) {
-        throw new Error(`分块文件 ${chunkResult.filePath} 不存在`);
-      }
       const data = await RNFS.readFile(chunkResult.filePath, 'base64');
       await RNFS.appendFile(finalFilePath, data, 'base64');
     }
-    console.log('文件合并完成');
 
-    // 删除临时文件夹
     if (await RNFS.exists(tempFolder)) {
       await deleteFolder(tempFolder);
-      console.log('临时文件夹已删除');
     }
 
     return { success: true, endTime: new Date().toISOString() };
   } catch (err: any) {
     console.error('下载视频时发生错误:', err);
+    onProgress(url, '0.0', '0.0', '0.0', '0.0', 'error'); // Report error on failure
     return { success: false, error: err.message || '未知错误' };
   }
 };
 
+// 分割ts下载m3u8
 export const downloadM3U8Video = async (
   url: string,
   fileName: string,
@@ -235,6 +225,7 @@ export const downloadM3U8Video = async (
 
     const m3u8DownloadResult = await m3u8DownloadTask.promise;
     if (m3u8DownloadResult.statusCode !== 200) {
+      onProgress(url, '0.0', '0.0', '0.0', '0.0', 'error'); // Report error
       return { success: false, error: 'Failed to download m3u8 file' };
     }
 
@@ -247,6 +238,9 @@ export const downloadM3U8Video = async (
         tsFileUrls.push(line.trim());
       }
     }
+
+    // 获取下载管理器中的信息
+    const { retryIndex, downloadedParts } = downloadManager.getRetryParams(url);
 
     // 创建一个临时目录来存储 TS 文件
     const tsDirectoryPath = `${directoryPath}/${fileName}_ts`;
@@ -263,7 +257,11 @@ export const downloadM3U8Video = async (
 
     // 下载所有的 TS 文件
     const tsDownloadPromises = [];
-    for (let i = 0; i < tsFileUrls.length; i++) {
+    for (let i = retryIndex; i < tsFileUrls.length; i++) {
+      if (downloadedParts.has(i)) {
+        continue;
+      } // 如果该文件已经下载，跳过
+
       const tsUrl = tsFileUrls[i];
       const tsFilePath = `${tsDirectoryPath}/${i}.ts`;
       tsDownloadPromises.push(
@@ -309,6 +307,7 @@ export const downloadM3U8Video = async (
                       loadedMb,
                       totalMb,
                       speed.toFixed(1),
+                      'downloading', // Pass 'downloading' status
                     );
                   }, 500); // 每 500ms 调用一次
                 }
@@ -351,6 +350,7 @@ export const downloadM3U8Video = async (
                     loadedMb,
                     totalMb,
                     speed.toFixed(1),
+                    'downloading', // Pass 'downloading' status
                   );
                 }, 500); // 每 500ms 调用一次
 
@@ -386,6 +386,7 @@ export const downloadM3U8Video = async (
     return { success: true, endTime };
   } catch (err) {
     console.error('Error downloading M3U8 video:', err);
+    onProgress(url, '0.0', '0.0', '0.0', '0.0', 'error'); // Report error
     return { success: false, error: err };
   }
 };
