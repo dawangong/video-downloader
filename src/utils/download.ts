@@ -214,6 +214,7 @@ export const downloadM3U8Video = async (
     let downloadedSize = 0; // 已下载大小（字节）
 
     const outputPath = `${directoryPath}/${fileName.replace('.m3u8', '.mp4')}`;
+
     // 检查目录是否存在
     const directoryExists = await RNFS.exists(directoryPath);
     if (!directoryExists) {
@@ -300,13 +301,16 @@ export const downloadM3U8Video = async (
                   lastTime = currentTime;
                   lastLoaded = downloadedSize;
 
-                  onProgress(
-                    url,
-                    percentage,
-                    loadedMb,
-                    totalMb,
-                    speed.toFixed(1),
-                  ); // 传递下载速度
+                  // 使用节流机制限制调用频率
+                  throttle(() => {
+                    onProgress(
+                      url,
+                      percentage,
+                      loadedMb,
+                      totalMb,
+                      speed.toFixed(1),
+                    );
+                  }, 500); // 每 500ms 调用一次
                 }
               } catch (err) {
                 // 文件可能还未创建
@@ -339,13 +343,16 @@ export const downloadM3U8Video = async (
                 lastTime = currentTime;
                 lastLoaded = downloadedSize;
 
-                onProgress(
-                  url,
-                  percentage,
-                  loadedMb,
-                  totalMb,
-                  speed.toFixed(1),
-                ); // 传递下载速度
+                // 使用节流机制限制调用频率
+                throttle(() => {
+                  onProgress(
+                    url,
+                    percentage,
+                    loadedMb,
+                    totalMb,
+                    speed.toFixed(1),
+                  );
+                }, 500); // 每 500ms 调用一次
 
                 resolve();
               } else {
@@ -369,7 +376,7 @@ export const downloadM3U8Video = async (
       const numB = parseInt(b.match(/\d+/)[0], 10);
       return numA - numB;
     });
-    mergeTsFiles(_tsFilePaths, outputPath);
+    await mergeTsFiles(_tsFilePaths, outputPath);
 
     // 清理临时文件
     await deleteFile(m3u8FilePath);
