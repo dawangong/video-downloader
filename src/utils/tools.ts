@@ -198,20 +198,15 @@ export const readVideoFiles = async (directoryPath: string) => {
       updateAt: string;
     }[] = [];
 
-    // 遍历文件和子目录
+    // 遍历当前目录下的文件（不递归子目录）
     for (const file of files) {
-      // 如果是目录，递归读取其中的视频文件
-      if (file.isDirectory()) {
-        const subDirectoryVideoFiles = await readVideoFiles(file.path);
-        videoFiles.push(...subDirectoryVideoFiles); // 现在可以安全地展开数组
-      } else {
-        // 使用正则表达式检查是否为视频文件
-        if (PlayPattern.test(file.path)) {
-          // 获取视频文件的基本信息
-          const videoInfo = await getVideoInfo(file.path);
-          if (videoInfo) {
-            videoFiles.push(videoInfo as any);
-          }
+      // 使用正则表达式检查是否为视频文件
+      if (!file.isDirectory() && PlayPattern.test(file.path)) {
+        console.log('file.path', file.path);
+        // 获取视频文件的基本信息
+        const videoInfo = await getVideoInfo(file.path);
+        if (videoInfo) {
+          videoFiles.push(videoInfo as any);
         }
       }
     }
@@ -354,3 +349,28 @@ export async function mergeTsFiles(tsFilePaths: any, outputFilePath: string) {
     console.error(err);
   }
 }
+
+// 解析视频文件名和扩展名
+export const getFileNameAndExtension = (
+  url: string,
+): { fileName: string; extension: string } => {
+  const match = PlayPattern.exec(url);
+  if (!match) {
+    throw new Error('无法解析视频文件名');
+  }
+  const fileName = match[1];
+  const extension = fileName.split('.').pop() || 'mp4'; // 默认使用mp4
+  return { fileName, extension };
+};
+
+// 限制 onProgress 触发频率（节流函数）
+export const throttle = (func: Function, delay: number) => {
+  let lastCall = 0;
+  return (...args: any[]) => {
+    const now = Date.now();
+    if (now - lastCall >= delay) {
+      lastCall = now;
+      func(...args);
+    }
+  };
+};

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import {
-  downloadNormalVideo2,
   downloadNormalVideo,
   downloadM3U8Video,
   OnProgressCallback,
@@ -78,7 +77,7 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
     const { dir, downList, updateDownList, addDownList, updateCacheList } =
       get();
     const isM3u8 = m3u8Link(url);
-    const downloadFn = isM3u8 ? downloadM3U8Video : downloadNormalVideo2;
+    const downloadFn = isM3u8 ? downloadM3U8Video : downloadNormalVideo;
     addDownList(name, url);
     await downloadFn(
       url,

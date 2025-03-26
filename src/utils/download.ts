@@ -1,11 +1,11 @@
 import RNFS from 'react-native-fs';
-// @ts-ignore
-import { FFmpegKit } from 'ffmpeg-kit-react-native';
 import {
+  getFileNameAndExtension,
   getFileSizeByUrl,
   mergeTsFiles,
   deleteFolder,
   deleteFile,
+  throttle,
 } from './tools';
 
 export type OnProgressCallback = (
@@ -17,21 +17,31 @@ export type OnProgressCallback = (
 ) => void;
 
 // 下载普通视频文件(多线程)
-export const downloadNormalVideo2 = async (
+export const downloadNormalVideo = async (
   url: string,
   fileName: string,
   directoryPath: string,
-  onProgress: OnProgressCallback,
+  onProgress: (
+    url: string,
+    percentage: string,
+    loadedMb: string,
+    totalMb: string,
+    speed: string,
+  ) => void,
   numberOfThreads: number = 10, // 默认使用10个线程
 ) => {
-  const MAX_RETRIES = 3; // 每个分块下载最大重试次数
+  const MAX_RETRIES = 10; // 每个分块下载最大重试次数
+
   try {
-    // 检查目标目录是否存在，不存在则创建
+    // 获取文件名和扩展名
+    const { extension } = getFileNameAndExtension(url);
+
+    // 检查目标目录是否存在
     if (!(await RNFS.exists(directoryPath))) {
       await RNFS.mkdir(directoryPath);
     }
 
-    // 使用 HEAD 请求获取文件信息
+    // 获取文件大小信息
     const headResponse = await fetch(url, { method: 'HEAD' });
     const acceptRanges = headResponse.headers.get('accept-ranges');
     const contentLength = parseInt(
@@ -44,13 +54,24 @@ export const downloadNormalVideo2 = async (
       return { success: false, error: '无法获取文件大小' };
     }
 
-    // 创建临时文件夹保存分块数据
-    const tempFolder = `${directoryPath}/${fileName.replace('.mp4', '')}_tmp`;
+    // 创建临时文件夹
+    const tempFolder = `${directoryPath}/${fileName.replace(
+      `.${extension}`,
+      '',
+    )}_tmp`;
     if (!(await RNFS.exists(tempFolder))) {
       await RNFS.mkdir(tempFolder);
     }
 
-    // 根据是否支持分块下载决定分块方案
+    // 统计全局进度
+    let totalDownloaded = 0;
+    const progressMap = new Array(numberOfThreads).fill(0);
+    const startTime = Date.now(); // 记录下载起始时间
+
+    // 限制 onProgress 触发频率（500ms 一次）
+    const throttledOnProgress = throttle(onProgress, 500);
+
+    // 计算分块
     let chunks: { start: number; end: number }[] = [];
     if (acceptRanges === 'bytes') {
       const chunkSize = Math.ceil(contentLength / numberOfThreads);
@@ -65,45 +86,54 @@ export const downloadNormalVideo2 = async (
       numberOfThreads = 1;
     }
 
-    // 定义下载单个分块的方法，增加重试机制
+    // 下载单个分块的方法
     const downloadChunk = async (
       chunk: { start: number; end: number },
       index: number,
-    ): Promise<{ filePath: string; start: number }> => {
-      const tempFilePath = `${tempFolder}/${index}.tmp.mp4`;
+    ) => {
+      const tempFilePath = `${tempFolder}/${index}.tmp.${extension}`;
       let attempt = 0;
+
       while (attempt < MAX_RETRIES) {
         try {
           const downloadTask = RNFS.downloadFile({
             fromUrl: url,
             toFile: tempFilePath,
-            headers: {
-              Range: `bytes=${chunk.start}-${chunk.end}`,
-            },
+            headers: { Range: `bytes=${chunk.start}-${chunk.end}` },
             begin: res => {
               if (res.statusCode !== 206 && numberOfThreads > 1) {
                 throw new Error(
-                  `Thread ${index} 开始下载失败，状态码：${res.statusCode}`,
+                  `线程 ${index} 开始下载失败，状态码：${res.statusCode}`,
                 );
               }
-              console.log(`线程 ${index} 开始下载：`, res);
             },
             progress: res => {
-              const totalBytes = chunk.end - chunk.start + 1;
+              // 计算全局进度
+              const prevProgress = progressMap[index];
+              progressMap[index] = res.bytesWritten;
+              totalDownloaded += progressMap[index] - prevProgress;
+
               const percentage = (
-                (res.bytesWritten / totalBytes) *
+                (totalDownloaded / contentLength) *
                 100
               ).toFixed(1);
-              const loadedMb = (res.bytesWritten / 1024 / 1024).toFixed(1);
-              const totalMb = (totalBytes / 1024 / 1024).toFixed(1);
-              // 可根据任务开始时间调整速度计算
-              const speed = (
-                res.bytesWritten /
+              const loadedMb = (totalDownloaded / 1024 / 1024).toFixed(1);
+              const totalMb = (contentLength / 1024 / 1024).toFixed(1);
+              const elapsedTime = (Date.now() - startTime) / 1000; // 秒
+              const downloadSpeed = (
+                totalDownloaded /
                 1024 /
                 1024 /
-                (Date.now() / 1000)
-              ).toFixed(1);
-              onProgress(url, percentage, loadedMb, totalMb, speed);
+                elapsedTime
+              ).toFixed(2); // MB/s
+
+              throttledOnProgress(
+                url,
+                percentage,
+                loadedMb,
+                totalMb,
+                downloadSpeed,
+              );
             },
           });
 
@@ -114,7 +144,7 @@ export const downloadNormalVideo2 = async (
             );
           }
 
-          // 检查文件是否存在且大小正确
+          // 验证文件
           if (!(await RNFS.exists(tempFilePath))) {
             throw new Error(`线程 ${index} 未能创建文件`);
           }
@@ -123,37 +153,32 @@ export const downloadNormalVideo2 = async (
             throw new Error(`线程 ${index} 文件大小不匹配`);
           }
 
-          console.log(`线程 ${index} 下载成功`);
           return { filePath: tempFilePath, start: chunk.start };
         } catch (err) {
           attempt++;
           console.warn(`线程 ${index} 第 ${attempt} 次尝试失败：`, err);
           if (attempt >= MAX_RETRIES) {
-            throw new Error(
-              `线程 ${index} 超过最大重试次数，失败原因：${err.message || err}`,
-            );
+            throw new Error(`线程 ${index} 超过最大重试次数`);
           }
-          // 可加入短暂延时后重试
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
-      // 若重试后依旧失败，则抛出错误
       throw new Error(`线程 ${index} 下载失败`);
     };
 
-    // 并行下载所有分块
-    const downloadPromises = chunks.map((chunk, index) =>
-      downloadChunk(chunk, index),
-    );
+    // 并行下载
     console.log('开始并行下载所有分块');
-    const chunkResults = await Promise.all(downloadPromises);
+    const chunkResults = await Promise.all(
+      chunks.map((chunk, index) => downloadChunk(chunk, index)),
+    );
     console.log('所有分块下载完成');
 
-    // 合并所有分块文件
+    // 合并分块
     const finalFilePath = `${directoryPath}/${fileName}`;
     if (await RNFS.exists(finalFilePath)) {
-      await RNFS.unlink(finalFilePath);
+      await deleteFile(finalFilePath);
     }
+
     for (const chunkResult of chunkResults.sort((a, b) => a.start - b.start)) {
       if (!(await RNFS.exists(chunkResult.filePath))) {
         throw new Error(`分块文件 ${chunkResult.filePath} 不存在`);
@@ -163,82 +188,16 @@ export const downloadNormalVideo2 = async (
     }
     console.log('文件合并完成');
 
-    // 删除临时文件夹及其内容
+    // 删除临时文件夹
     if (await RNFS.exists(tempFolder)) {
-      await RNFS.unlink(tempFolder);
+      await deleteFolder(tempFolder);
       console.log('临时文件夹已删除');
     }
 
-    const endTime = new Date().toISOString();
-    return { success: true, endTime };
+    return { success: true, endTime: new Date().toISOString() };
   } catch (err: any) {
     console.error('下载视频时发生错误:', err);
     return { success: false, error: err.message || '未知错误' };
-  }
-};
-
-// 下载普通视频文件(单线程)
-export const downloadNormalVideo = async (
-  url: string,
-  fileName: string,
-  directoryPath: string,
-  onProgress: OnProgressCallback,
-) => {
-  try {
-    let lastTime = 0; // 上一次时间戳
-    let lastLoaded = 0; // 上一次已下载的字节数
-
-    const filePath = `${directoryPath}/${fileName}`;
-    // 检查目录是否存在
-    const directoryExists = await RNFS.exists(directoryPath);
-    if (!directoryExists) {
-      await RNFS.mkdir(directoryPath); // 创建目录
-    }
-
-    const downloadTask = RNFS.downloadFile({
-      fromUrl: url,
-      toFile: filePath,
-      begin: res => {
-        console.log('Started', res);
-        lastTime = new Date().getTime(); // 初始化时间戳
-        lastLoaded = 0; // 初始化已下载字节数
-      },
-      progress: res => {
-        const percentage = (
-          (res.bytesWritten / res.contentLength) *
-          100
-        ).toFixed(1);
-        const loadedMb = (res.bytesWritten / 1024 / 1024).toFixed(1);
-        const totalMb = (res.contentLength / 1024 / 1024).toFixed(1);
-
-        // 计算下载速度
-        const currentTime = new Date().getTime();
-        const timeDiff = currentTime - lastTime; // 时间差（毫秒）
-        const loadedDiff = res.bytesWritten - lastLoaded; // 数据量差（字节）
-
-        let speed = 0;
-        if (timeDiff > 0 && loadedDiff > 0) {
-          speed = loadedDiff / 1024 / 1024 / (timeDiff / 1000); // MB/s
-        }
-
-        // 更新上次的时间和已下载字节数
-        lastTime = currentTime;
-        lastLoaded = res.bytesWritten;
-
-        onProgress(url, percentage, loadedMb, totalMb, speed.toFixed(1)); // 传递下载速度
-      },
-    });
-
-    const downloadResult = await downloadTask.promise;
-    if (downloadResult.statusCode === 200) {
-      const endTime = new Date().toISOString();
-      return { success: true, endTime };
-    } else {
-      return { success: false, error: 'Download failed' };
-    }
-  } catch (err) {
-    console.error('Error downloading video:', err);
-    return { success: false, error: err };
   }
 };
 
