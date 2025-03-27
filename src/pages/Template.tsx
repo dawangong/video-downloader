@@ -3,7 +3,7 @@ import { StyleSheet, useColorScheme, View, Text } from 'react-native';
 
 import { Header } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { LightColors, DarkColors } from '@/constants/colors';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -17,7 +17,7 @@ const Template = () => {
 
   const pageStyle = {
     flex: 1,
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+    backgroundColor: isDarkMode ? DarkColors.pageBg : LightColors.pageBg,
   };
 
   const { dir, maxTask } = useGlobalStore();

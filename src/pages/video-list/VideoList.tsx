@@ -12,8 +12,7 @@ import { Divider } from 'react-native-paper';
 
 import { Header, Loading } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
-import { LightColors } from '@/constants/colors';
+import { LightColors, DarkColors } from '@/constants/colors';
 import { useMount } from '@/hooks/index';
 
 const styles = StyleSheet.create({
@@ -66,7 +65,7 @@ const VideoList = () => {
 
   const pageStyle = {
     flex: 1,
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+    backgroundColor: isDarkMode ? DarkColors.pageBg : LightColors.pageBg,
   };
 
   const { dir, cacheList, readLoading, updateCacheList } = useGlobalStore();

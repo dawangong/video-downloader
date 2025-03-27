@@ -14,7 +14,6 @@ import {
   useColorScheme,
   // NativeModules,
 } from 'react-native'; // 导入需要的组件
-import { Colors } from 'react-native/Libraries/NewAppScreen';
 import {
   requestStoragePermission,
   requestLocationPermission,
@@ -23,6 +22,7 @@ import { getDefaultDownloadDirectory } from '@/utils/tools';
 import useGlobalStore from '@/stores/globalStore';
 import { getData } from '@/utils/cache';
 import { useMount } from '@/hooks/index';
+import { LightColors, DarkColors } from '@/constants/colors';
 
 // if (__DEV__) {
 //   require('react-native-devsettings');
@@ -36,9 +36,7 @@ if (__DEV__) {
 
 const App = (): React.JSX.Element => {
   const isDarkMode = useColorScheme() === 'dark';
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+  const backgroundColor = isDarkMode ? DarkColors.pageBg : LightColors.pageBg;
 
   const { setDir, setMaxTask, maxTask: _mt } = useGlobalStore();
 
@@ -64,10 +62,10 @@ const App = (): React.JSX.Element => {
       {/* 设置状态栏的样式 */}
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
+        backgroundColor={backgroundColor}
       />
       {/* 使用 SafeAreaView 包裹全局内容 */}
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor }}>
         <NavigationContainer>
           <StackNavigator />
         </NavigationContainer>

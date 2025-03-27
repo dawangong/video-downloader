@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { Input, Button, Toast, WingBlank } from '@ant-design/react-native';
 import { StyleSheet, useColorScheme, View, Text } from 'react-native';
 
-import { LightColors } from '@/constants/colors';
 import { Header } from '@/components/index';
 import { validateLink, mockApi, sliceVideoName } from '@/utils/tools';
 import useGlobalStore from '@/stores/globalStore';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { LightColors, DarkColors } from '@/constants/colors';
 
 const styles = StyleSheet.create({
   body: {
@@ -62,7 +61,7 @@ const AddTask = (): React.JSX.Element => {
 
   const pageStyle = {
     flex: 1,
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+    backgroundColor: isDarkMode ? DarkColors.pageBg : LightColors.pageBg,
   };
 
   const { dir, downloadVideo } = useGlobalStore();

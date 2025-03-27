@@ -12,8 +12,7 @@ import { Dialog, Provider, Button } from 'react-native-paper';
 
 import { Header } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
-import { LightColors } from '@/constants/colors';
+import { LightColors, DarkColors } from '@/constants/colors';
 import { selectDownloadDirectory } from '@/utils/tools';
 
 const Item = List.Item;
@@ -32,7 +31,7 @@ const Setting = () => {
 
   const pageStyle = {
     flex: 1,
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+    backgroundColor: isDarkMode ? DarkColors.pageBg : LightColors.pageBg,
   };
 
   const itemStyle = {

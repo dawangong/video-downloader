@@ -1,5 +1,3 @@
-import { Colors } from 'react-native/Libraries/NewAppScreen';
-
 enum LightColors {
   primary500 = '#6075e2',
   primary50 = '#eff5fe',
@@ -18,7 +16,7 @@ enum LightColors {
   white = '#ffffff',
   disable = 'rgb(221, 221, 221)',
   opacity = 'transparent',
-  pageBg = Colors.lighter,
+  pageBg = '#F3F3F3',
 }
 
 enum DarkColors {
@@ -39,7 +37,7 @@ enum DarkColors {
   white = '#ffffff',
   disable = 'rgb(221, 221, 221)',
   opacity = 'transparent',
-  pageBg = Colors.darker,
+  pageBg = '#222222',
 }
 
 export { LightColors, DarkColors };
