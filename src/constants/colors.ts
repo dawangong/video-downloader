@@ -27,7 +27,7 @@ export enum DarkColors {
   white = 'rgba(255, 255, 255, 0.7)',
   disable = '#4D4D4D',
   opacity = 'transparent',
-  pageBg = '#4b4b4b',
+  pageBg = '#222222',
 }
 
 const selectColor = (isDark?: boolean) => (isDark ? DarkColors : LightColors);

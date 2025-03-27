@@ -28,6 +28,13 @@ const Setting = () => {
     list: {
       backgroundColor: selectColor(isDarkMode).pageBg,
     },
+    text: {
+      color: selectColor(isDarkMode).black,
+    },
+    title: {
+      color: selectColor(isDarkMode).black,
+      fontSize: 22,
+    },
     select: {
       fontSize: 16,
     },
@@ -76,7 +83,7 @@ const Setting = () => {
                   setShowSaveDir(true);
                 }
               }}>
-              保存位置
+              <Text style={styles.text}>保存位置</Text>
             </Item>
             <Item
               style={itemStyle}
@@ -84,7 +91,7 @@ const Setting = () => {
               onPress={() => {
                 setShowTaskLimit(true);
               }}>
-              最大同时下载任务数
+              <Text style={styles.text}>最大同时下载任务数</Text>
             </Item>
           </List>
           <List renderHeader="其他" style={styles.list}>
@@ -94,15 +101,17 @@ const Setting = () => {
               onPress={() => {
                 setShowProtocol(true);
               }}>
-              隐私政策
+              <Text style={styles.text}>隐私政策</Text>
             </Item>
             <Item style={itemStyle} extra="v1.0.0">
-              版本
+              <Text style={styles.text}>版本</Text>
             </Item>
           </List>
         </View>
         <Dialog visible={showSaveDir} onDismiss={() => setShowSaveDir(false)}>
-          <Dialog.Title>保存位置</Dialog.Title>
+          <Dialog.Title>
+            <Text style={styles.title}>保存位置</Text>
+          </Dialog.Title>
           <Dialog.Content>
             <Text
               style={styles.select}
@@ -111,14 +120,16 @@ const Setting = () => {
                 const path = await selectDownloadDirectory();
                 path && setDirAndStorage(path);
               }}>
-              选择文件夹...
+              <Text style={styles.text}>选择文件夹...</Text>
             </Text>
           </Dialog.Content>
         </Dialog>
         <Dialog
           visible={showTaskLimit}
           onDismiss={() => setShowTaskLimit(false)}>
-          <Dialog.Title>最大同时下载任务数</Dialog.Title>
+          <Dialog.Title>
+            <Text style={styles.title}>最大同时下载任务数</Text>
+          </Dialog.Title>
           <Dialog.Content>
             <PickerView
               styles={{
@@ -144,10 +155,12 @@ const Setting = () => {
           </Dialog.Content>
         </Dialog>
         <Dialog visible={showProtocol} onDismiss={() => setShowProtocol(false)}>
-          <Dialog.Title>隐私政策</Dialog.Title>
+          <Dialog.Title>
+            <Text style={styles.title}>隐私政策</Text>
+          </Dialog.Title>
           <Dialog.ScrollArea style={{ maxHeight: 300 }}>
             <ScrollView contentContainerStyle={{ paddingHorizontal: 0 }}>
-              <Text>
+              <Text style={styles.text}>
                 This is a scrollable area This is a scrollable area This is a
                 scrollable area This is a scrollable area This is a scrollable
                 area This is a scrollable area This is a scrollable area This is
@@ -170,7 +183,7 @@ const Setting = () => {
             </ScrollView>
           </Dialog.ScrollArea>
           <Button style={{ bottom: 15 }} onPress={() => setShowProtocol(false)}>
-            知道了
+            <Text style={{ fontSize: 18 }}>知道了</Text>
           </Button>
         </Dialog>
       </View>
