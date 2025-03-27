@@ -23,11 +23,11 @@ export enum DarkColors {
   primary500 = '#545fd7',
   black = 'rgba(255, 255, 255, 0.5)',
   tips = '#757575',
-  title = '#FFFFFF',
+  title = 'rgba(255, 255, 255, 0.6)',
   white = 'rgba(255, 255, 255, 0.7)',
   disable = '#4D4D4D',
   opacity = 'transparent',
-  pageBg = '#222222',
+  pageBg = '#4b4b4b',
 }
 
 const selectColor = (isDark?: boolean) => (isDark ? DarkColors : LightColors);

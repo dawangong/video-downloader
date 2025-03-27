@@ -11,7 +11,7 @@ const Loading: React.FC<{ text?: string }> = ({ text = 'Loading...' }) => {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      backgroundColor: selectColor(isDarkMode).pageBg,
     },
     text: {
       marginTop: 10,

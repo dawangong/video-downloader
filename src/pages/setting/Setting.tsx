@@ -17,17 +17,21 @@ import { selectDownloadDirectory } from '@/utils/tools';
 
 const Item = List.Item;
 
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
-  select: {
-    fontSize: 16,
-  },
-});
-
 const Setting = () => {
   const isDarkMode = useColorScheme() === 'dark';
+
+  const styles = StyleSheet.create({
+    wrapper: {
+      flex: 1,
+      backgroundColor: selectColor(isDarkMode).pageBg,
+    },
+    list: {
+      backgroundColor: selectColor(isDarkMode).pageBg,
+    },
+    select: {
+      fontSize: 16,
+    },
+  });
 
   const pageStyle = {
     flex: 1,
@@ -35,7 +39,8 @@ const Setting = () => {
   };
 
   const itemStyle = {
-    // backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+    backgroundColor: selectColor(isDarkMode).pageBg,
+    color: selectColor(isDarkMode).black,
   };
 
   const [toastApi, contextHolder] = Toast.useToast();
@@ -56,7 +61,7 @@ const Setting = () => {
       <View style={pageStyle}>
         <Header model="back" />
         <View style={styles.wrapper}>
-          <List renderHeader="下载">
+          <List renderHeader="下载" style={styles.list}>
             <Item
               style={itemStyle}
               extra={dir}
@@ -82,7 +87,7 @@ const Setting = () => {
               最大同时下载任务数
             </Item>
           </List>
-          <List renderHeader="其他">
+          <List renderHeader="其他" style={styles.list}>
             <Item
               style={itemStyle}
               extra="查看"

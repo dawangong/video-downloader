@@ -1,7 +1,8 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import tabRoutes from '../tabRoutes'; // 引入动态路由配置
-import { Dimensions } from 'react-native';
+import { Dimensions, useColorScheme, StyleSheet } from 'react-native';
+import selectColor from '@/constants/colors';
 
 const { height } = Dimensions.get('window');
 
@@ -11,12 +12,19 @@ const tabBarHeight = height * 0.08; // 8% 的屏幕高度
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
+  const isDarkMode = useColorScheme() === 'dark';
+
+  const styles = StyleSheet.create({
+    tabBarStyle: {
+      height: tabBarHeight,
+      backgroundColor: selectColor(isDarkMode).pageBg,
+    },
+  });
+
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarStyle: {
-          height: tabBarHeight,
-        },
+        tabBarStyle: styles.tabBarStyle,
       }}>
       {tabRoutes.map((route, index) => (
         <Tab.Screen

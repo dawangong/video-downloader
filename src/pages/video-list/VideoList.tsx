@@ -26,7 +26,7 @@ const VideoList = () => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       paddingInline: 10,
-      color: selectColor(isDarkMode).title,
+      color: selectColor(isDarkMode).black,
       fontSize: 18,
       paddingVertical: 6,
     },
@@ -50,6 +50,9 @@ const VideoList = () => {
     status: {
       flexDirection: 'row',
       columnGap: 20,
+    },
+    text: {
+      color: selectColor(isDarkMode).black,
     },
     cover: {
       width: 80,
@@ -92,7 +95,7 @@ const VideoList = () => {
       <Header model="setting" />
       <View style={styles.wrapper}>
         <View style={styles.header}>
-          <Text>{dir}</Text>
+          <Text style={styles.text}>{dir}</Text>
           <Icon
             name="reload"
             color={selectColor(isDarkMode).black}
@@ -118,10 +121,10 @@ const VideoList = () => {
                   <View style={styles.info}>
                     <Text style={styles.itemText}>{item.fileName}</Text>
                     <View style={styles.status}>
-                      <Text>大小: {item.size} MB</Text>
-                      <Text>时长: {item.length}</Text>
+                      <Text style={styles.text}>大小: {item.size} MB</Text>
+                      <Text style={styles.text}>时长: {item.length}</Text>
                     </View>
-                    <Text>下载于: {item.downTime}</Text>
+                    <Text style={styles.text}>下载于: {item.downTime}</Text>
                   </View>
                 </View>
                 <Divider />
