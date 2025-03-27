@@ -13,7 +13,7 @@ import { Divider } from 'react-native-paper';
 import { Header, Loading } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
-import MyColors from '@/constants/colors';
+import { LightColors } from '@/constants/colors';
 import { useMount } from '@/hooks/index';
 
 const styles = StyleSheet.create({
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingInline: 10,
-    color: MyColors.title,
+    color: LightColors.title,
     fontSize: 18,
     paddingVertical: 6,
   },
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   itemText: {
-    color: MyColors.black,
+    color: LightColors.black,
   },
   info: {
     marginLeft: 10,
@@ -52,12 +52,12 @@ const styles = StyleSheet.create({
   cover: {
     width: 80,
     height: 60,
-    backgroundColor: MyColors.disable,
+    backgroundColor: LightColors.disable,
     borderRadius: 10,
   },
   empty: {
     textAlign: 'center',
-    color: MyColors.tips,
+    color: LightColors.tips,
   },
 });
 
@@ -96,7 +96,7 @@ const VideoList = () => {
           <Text>{dir}</Text>
           <Icon
             name="reload"
-            color={MyColors.black}
+            color={LightColors.black}
             onPress={async () => {
               loadFile('列表刷新成功');
             }}

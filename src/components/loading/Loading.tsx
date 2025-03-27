@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
-import MyColors from '@/constants/colors';
+import { LightColors } from '@/constants/colors';
 
 const Loading: React.FC<{ text?: string }> = ({ text = 'Loading...' }) => {
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color={MyColors.primary500} />
+      <ActivityIndicator size="large" color={LightColors.primary500} />
       <Text style={styles.text}>{text}</Text>
     </View>
   );

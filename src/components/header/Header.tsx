@@ -1,4 +1,4 @@
-import MyColors from '@/constants/colors';
+import { LightColors } from '@/constants/colors';
 import { StyleSheet, Dimensions, View, Text } from 'react-native';
 import { Icon } from '@ant-design/react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -11,7 +11,7 @@ const headerHeight = height * 0.06;
 const styles = StyleSheet.create({
   header: {
     height: headerHeight,
-    backgroundColor: MyColors.primary500, // 设置导航栏背景颜色
+    backgroundColor: LightColors.primary500, // 设置导航栏背景颜色
     paddingLeft: 10,
     paddingRight: 10,
   },
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   text: {
-    color: MyColors.white,
+    color: LightColors.white,
     fontWeight: 'bold',
     fontSize: 20,
   },
@@ -61,7 +61,7 @@ const Header = (props: Props) => {
   const back = (
     <Icon
       name="left"
-      color={MyColors.white}
+      color={LightColors.white}
       size={24}
       onPress={() => navigation.goBack()}
       style={styles.backIcon}
@@ -73,7 +73,7 @@ const Header = (props: Props) => {
     right ? (
       <Icon
         name="setting"
-        color={MyColors.white}
+        color={LightColors.white}
         size={24}
         onPress={() => navigation.navigate('Setting')}
         style={styles.settingIcon}
@@ -81,7 +81,7 @@ const Header = (props: Props) => {
     ) : (
       <Icon
         name="setting"
-        color={MyColors.white}
+        color={LightColors.white}
         size={24}
         onPress={() => navigation.navigate('Setting')}
       />

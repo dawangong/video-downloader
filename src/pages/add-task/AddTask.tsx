@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Input, Button, Toast, WingBlank } from '@ant-design/react-native';
 import { StyleSheet, useColorScheme, View, Text } from 'react-native';
 
-import MyColors from '@/constants/colors';
+import { LightColors } from '@/constants/colors';
 import { Header } from '@/components/index';
 import { validateLink, mockApi, sliceVideoName } from '@/utils/tools';
 import useGlobalStore from '@/stores/globalStore';
@@ -11,11 +11,11 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 const styles = StyleSheet.create({
   body: {
     flex: 1,
-    color: MyColors.black,
+    color: LightColors.black,
     alignItems: 'center',
   },
   footer: {
-    color: MyColors.tips,
+    color: LightColors.tips,
   },
   wrapper: {
     padding: 6,
@@ -29,31 +29,31 @@ const styles = StyleSheet.create({
   },
   focusedInput: {
     borderBottomWidth: 2,
-    borderColor: MyColors.primary500,
+    borderColor: LightColors.primary500,
   },
   button: {
     width: 90,
     height: 35,
     lineHeight: 35,
     marginTop: 20,
-    backgroundColor: MyColors.primary500,
-    borderColor: MyColors.opacity,
+    backgroundColor: LightColors.primary500,
+    borderColor: LightColors.opacity,
   },
   buttonActive: {
-    backgroundColor: MyColors.primary500,
-    borderColor: MyColors.opacity,
+    backgroundColor: LightColors.primary500,
+    borderColor: LightColors.opacity,
   },
   cButton: {
     width: 90,
     height: 35,
     lineHeight: 35,
     marginTop: 20,
-    backgroundColor: MyColors.primary500,
-    borderColor: MyColors.opacity,
+    backgroundColor: LightColors.primary500,
+    borderColor: LightColors.opacity,
   },
   cButtonActive: {
-    backgroundColor: MyColors.primary500,
-    borderColor: MyColors.opacity,
+    backgroundColor: LightColors.primary500,
+    borderColor: LightColors.opacity,
   },
 });
 

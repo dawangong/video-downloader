@@ -13,7 +13,7 @@ import { Dialog, Provider, Button } from 'react-native-paper';
 import { Header } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
-import MyColors from '@/constants/colors';
+import { LightColors } from '@/constants/colors';
 import { selectDownloadDirectory } from '@/utils/tools';
 
 const Item = List.Item;
@@ -119,7 +119,7 @@ const Setting = () => {
             <PickerView
               styles={{
                 wrappper: {
-                  backgroundColor: MyColors.primary500,
+                  backgroundColor: LightColors.primary500,
                 },
               }}
               onChange={(v: any) => {

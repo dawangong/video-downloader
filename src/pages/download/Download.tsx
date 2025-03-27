@@ -7,14 +7,14 @@ import { Divider } from 'react-native-paper';
 import { Header } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
-import MyColors from '@/constants/colors';
+import { LightColors } from '@/constants/colors';
 
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
   },
   title: {
-    color: MyColors.title,
+    color: LightColors.title,
     fontSize: 18,
     paddingInline: 10,
     paddingVertical: 6,
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     rowGap: 6,
   },
   itemText: {
-    color: MyColors.black,
+    color: LightColors.black,
   },
   status: {
     flexDirection: 'row',
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   },
   empty: {
     textAlign: 'center',
-    color: MyColors.tips,
+    color: LightColors.tips,
   },
 });
 
