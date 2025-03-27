@@ -22,7 +22,7 @@ import { getDefaultDownloadDirectory } from '@/utils/tools';
 import useGlobalStore from '@/stores/globalStore';
 import { getData } from '@/utils/cache';
 import { useMount } from '@/hooks/index';
-import { LightColors, DarkColors } from '@/constants/colors';
+import selectColor from '@/constants/colors';
 
 // if (__DEV__) {
 //   require('react-native-devsettings');
@@ -36,14 +36,14 @@ if (__DEV__) {
 
 const App = (): React.JSX.Element => {
   const isDarkMode = useColorScheme() === 'dark';
-  const backgroundColor = isDarkMode ? DarkColors.pageBg : LightColors.pageBg;
-
+  const backgroundColor = selectColor(isDarkMode).pageBg;
   const { setDir, setMaxTask, maxTask: _mt } = useGlobalStore();
 
   // 在应用启动时调用
   useMount(() => {
     requestStoragePermission();
     requestLocationPermission();
+    console.log(isDarkMode, 'isDarkMode');
 
     Promise.all([
       getData('dir'),

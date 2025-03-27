@@ -5,63 +5,65 @@ import { StyleSheet, useColorScheme, View, Text } from 'react-native';
 import { Header } from '@/components/index';
 import { validateLink, mockApi, sliceVideoName } from '@/utils/tools';
 import useGlobalStore from '@/stores/globalStore';
-import { LightColors, DarkColors } from '@/constants/colors';
-
-const styles = StyleSheet.create({
-  body: {
-    flex: 1,
-    color: LightColors.black,
-    alignItems: 'center',
-  },
-  footer: {
-    color: LightColors.tips,
-  },
-  wrapper: {
-    padding: 6,
-    flex: 1,
-  },
-  input: {
-    width: '95%',
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-    marginTop: 10,
-  },
-  focusedInput: {
-    borderBottomWidth: 2,
-    borderColor: LightColors.primary500,
-  },
-  button: {
-    width: 90,
-    height: 35,
-    lineHeight: 35,
-    marginTop: 20,
-    backgroundColor: LightColors.primary500,
-    borderColor: LightColors.opacity,
-  },
-  buttonActive: {
-    backgroundColor: LightColors.primary500,
-    borderColor: LightColors.opacity,
-  },
-  cButton: {
-    width: 90,
-    height: 35,
-    lineHeight: 35,
-    marginTop: 20,
-    backgroundColor: LightColors.primary500,
-    borderColor: LightColors.opacity,
-  },
-  cButtonActive: {
-    backgroundColor: LightColors.primary500,
-    borderColor: LightColors.opacity,
-  },
-});
+import selectColor from '@/constants/colors';
 
 const AddTask = (): React.JSX.Element => {
   const isDarkMode = useColorScheme() === 'dark';
 
+  const styles = StyleSheet.create({
+    body: {
+      flex: 1,
+      color: selectColor(isDarkMode).black,
+      alignItems: 'center',
+    },
+    footer: {
+      color: selectColor(isDarkMode).tips,
+    },
+    wrapper: {
+      padding: 6,
+      flex: 1,
+    },
+    input: {
+      width: '95%',
+      borderBottomWidth: 1,
+      borderColor: '#ccc',
+      marginTop: 10,
+      color: selectColor(isDarkMode).black,
+    },
+    focusedInput: {
+      borderBottomWidth: 2,
+      borderColor: selectColor(isDarkMode).primary500,
+      color: selectColor(isDarkMode).black,
+    },
+    button: {
+      width: 90,
+      height: 35,
+      lineHeight: 35,
+      marginTop: 20,
+      backgroundColor: selectColor(isDarkMode).primary500,
+      borderColor: selectColor(isDarkMode).opacity,
+    },
+    buttonActive: {
+      backgroundColor: selectColor(isDarkMode).primary500,
+      borderColor: selectColor(isDarkMode).opacity,
+    },
+    cButton: {
+      width: 90,
+      height: 35,
+      lineHeight: 35,
+      marginTop: 20,
+      backgroundColor: selectColor(isDarkMode).primary500,
+      borderColor: selectColor(isDarkMode).opacity,
+    },
+    cButtonActive: {
+      backgroundColor: selectColor(isDarkMode).primary500,
+      borderColor: selectColor(isDarkMode).opacity,
+    },
+  });
+
   const pageStyle = {
     flex: 1,
-    backgroundColor: isDarkMode ? DarkColors.pageBg : LightColors.pageBg,
+    backgroundColor: selectColor(isDarkMode).pageBg,
   };
 
   const { dir, downloadVideo } = useGlobalStore();

@@ -12,7 +12,7 @@ import { Dialog, Provider, Button } from 'react-native-paper';
 
 import { Header } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
-import { LightColors, DarkColors } from '@/constants/colors';
+import selectColor from '@/constants/colors';
 import { selectDownloadDirectory } from '@/utils/tools';
 
 const Item = List.Item;
@@ -31,7 +31,7 @@ const Setting = () => {
 
   const pageStyle = {
     flex: 1,
-    backgroundColor: isDarkMode ? DarkColors.pageBg : LightColors.pageBg,
+    backgroundColor: selectColor(isDarkMode).pageBg,
   };
 
   const itemStyle = {
@@ -118,7 +118,7 @@ const Setting = () => {
             <PickerView
               styles={{
                 wrappper: {
-                  backgroundColor: LightColors.primary500,
+                  backgroundColor: selectColor(isDarkMode).primary500,
                 },
               }}
               onChange={(v: any) => {

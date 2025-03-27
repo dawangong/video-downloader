@@ -6,45 +6,45 @@ import { Divider } from 'react-native-paper';
 
 import { Header } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
-import { LightColors, DarkColors } from '@/constants/colors';
-
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
-  title: {
-    color: LightColors.title,
-    fontSize: 18,
-    paddingInline: 10,
-    paddingVertical: 6,
-  },
-  list: {
-    paddingInline: 10,
-    rowGap: 20,
-  },
-  item: {
-    paddingVertical: 10,
-    rowGap: 6,
-  },
-  itemText: {
-    color: LightColors.black,
-  },
-  status: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  empty: {
-    textAlign: 'center',
-    color: LightColors.tips,
-  },
-});
+import selectColor from '@/constants/colors';
 
 const Download = () => {
   const isDarkMode = useColorScheme() === 'dark';
 
+  const styles = StyleSheet.create({
+    wrapper: {
+      flex: 1,
+    },
+    title: {
+      color: selectColor(isDarkMode).title,
+      fontSize: 18,
+      paddingInline: 10,
+      paddingVertical: 6,
+    },
+    list: {
+      paddingInline: 10,
+      rowGap: 20,
+    },
+    item: {
+      paddingVertical: 10,
+      rowGap: 6,
+    },
+    itemText: {
+      color: selectColor(isDarkMode).black,
+    },
+    status: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    empty: {
+      textAlign: 'center',
+      color: selectColor(isDarkMode).tips,
+    },
+  });
+
   const pageStyle = {
     flex: 1,
-    backgroundColor: isDarkMode ? DarkColors.pageBg : LightColors.pageBg,
+    backgroundColor: selectColor(isDarkMode).pageBg,
   };
 
   const { downList, downloadVideo } = useGlobalStore();

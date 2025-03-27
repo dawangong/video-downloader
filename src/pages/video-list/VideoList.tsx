@@ -12,60 +12,60 @@ import { Divider } from 'react-native-paper';
 
 import { Header, Loading } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
-import { LightColors, DarkColors } from '@/constants/colors';
+import selectColor from '@/constants/colors';
 import { useMount } from '@/hooks/index';
-
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingInline: 10,
-    color: LightColors.title,
-    fontSize: 18,
-    paddingVertical: 6,
-  },
-  list: {
-    paddingInline: 10,
-    rowGap: 20,
-  },
-  item: {
-    paddingVertical: 10,
-    rowGap: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  itemText: {
-    color: LightColors.black,
-  },
-  info: {
-    marginLeft: 10,
-    flex: 1,
-  },
-  status: {
-    flexDirection: 'row',
-    columnGap: 20,
-  },
-  cover: {
-    width: 80,
-    height: 60,
-    backgroundColor: LightColors.disable,
-    borderRadius: 10,
-  },
-  empty: {
-    textAlign: 'center',
-    color: LightColors.tips,
-  },
-});
 
 const VideoList = () => {
   const isDarkMode = useColorScheme() === 'dark';
 
+  const styles = StyleSheet.create({
+    wrapper: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingInline: 10,
+      color: selectColor(isDarkMode).title,
+      fontSize: 18,
+      paddingVertical: 6,
+    },
+    list: {
+      paddingInline: 10,
+      rowGap: 20,
+    },
+    item: {
+      paddingVertical: 10,
+      rowGap: 6,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    itemText: {
+      color: selectColor(isDarkMode).black,
+    },
+    info: {
+      marginLeft: 10,
+      flex: 1,
+    },
+    status: {
+      flexDirection: 'row',
+      columnGap: 20,
+    },
+    cover: {
+      width: 80,
+      height: 60,
+      backgroundColor: selectColor(isDarkMode).disable,
+      borderRadius: 10,
+    },
+    empty: {
+      textAlign: 'center',
+      color: selectColor(isDarkMode).tips,
+    },
+  });
+
   const pageStyle = {
     flex: 1,
-    backgroundColor: isDarkMode ? DarkColors.pageBg : LightColors.pageBg,
+    backgroundColor: selectColor(isDarkMode).pageBg,
   };
 
   const { dir, cacheList, readLoading, updateCacheList } = useGlobalStore();
@@ -95,7 +95,7 @@ const VideoList = () => {
           <Text>{dir}</Text>
           <Icon
             name="reload"
-            color={LightColors.black}
+            color={selectColor(isDarkMode).black}
             onPress={async () => {
               loadFile('列表刷新成功');
             }}

@@ -1,54 +1,13 @@
-import { LightColors } from '@/constants/colors';
+import selectColor from '@/constants/colors';
 import { StyleSheet, Dimensions, View, Text } from 'react-native';
 import { Icon } from '@ant-design/react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useColorScheme } from 'react-native';
 
 const { height } = Dimensions.get('window');
 
 // 计算动态高度
 const headerHeight = height * 0.06;
-
-const styles = StyleSheet.create({
-  header: {
-    height: headerHeight,
-    backgroundColor: LightColors.primary500, // 设置导航栏背景颜色
-    paddingLeft: 10,
-    paddingRight: 10,
-  },
-  title: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    height: '100%',
-  },
-  setting: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    height: '100%',
-  },
-  back: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: '100%',
-  },
-  all: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: '100%',
-  },
-  text: {
-    color: LightColors.white,
-    fontWeight: 'bold',
-    fontSize: 20,
-  },
-  backIcon: {
-    marginRight: 10,
-  },
-  settingIcon: {
-    marginLeft: 200,
-  },
-});
 
 interface Props {
   model?: 'title' | 'setting' | 'back' | 'all';
@@ -57,11 +16,54 @@ interface Props {
 const Header = (props: Props) => {
   const { model = 'title' } = props;
   const navigation = useNavigation<any>();
+  const isDarkMode = useColorScheme() === 'dark';
+
+  const styles = StyleSheet.create({
+    header: {
+      height: headerHeight,
+      backgroundColor: selectColor(isDarkMode).primary500, // 设置导航栏背景颜色
+      paddingLeft: 10,
+      paddingRight: 10,
+    },
+    title: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      height: '100%',
+    },
+    setting: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      height: '100%',
+    },
+    back: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      height: '100%',
+    },
+    all: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      height: '100%',
+    },
+    text: {
+      color: selectColor(isDarkMode).white,
+      fontWeight: 'bold',
+      fontSize: 20,
+    },
+    backIcon: {
+      marginRight: 10,
+    },
+    settingIcon: {
+      marginLeft: 200,
+    },
+  });
 
   const back = (
     <Icon
       name="left"
-      color={LightColors.white}
+      color={selectColor(isDarkMode).white}
       size={24}
       onPress={() => navigation.goBack()}
       style={styles.backIcon}
@@ -73,7 +75,7 @@ const Header = (props: Props) => {
     right ? (
       <Icon
         name="setting"
-        color={LightColors.white}
+        color={selectColor(isDarkMode).white}
         size={24}
         onPress={() => navigation.navigate('Setting')}
         style={styles.settingIcon}
@@ -81,7 +83,7 @@ const Header = (props: Props) => {
     ) : (
       <Icon
         name="setting"
-        color={LightColors.white}
+        color={selectColor(isDarkMode).white}
         size={24}
         onPress={() => navigation.navigate('Setting')}
       />
