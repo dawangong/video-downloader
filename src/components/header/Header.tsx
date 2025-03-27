@@ -11,7 +11,7 @@ const headerHeight = height * 0.06;
 const styles = StyleSheet.create({
   header: {
     height: headerHeight,
-    backgroundColor: MyColors.primary, // 设置导航栏背景颜色
+    backgroundColor: MyColors.primary500, // 设置导航栏背景颜色
     paddingLeft: 10,
     paddingRight: 10,
   },

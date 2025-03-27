@@ -29,18 +29,18 @@ const styles = StyleSheet.create({
   },
   focusedInput: {
     borderBottomWidth: 2,
-    borderColor: MyColors.primary,
+    borderColor: MyColors.primary500,
   },
   button: {
     width: 90,
     height: 35,
     lineHeight: 35,
     marginTop: 20,
-    backgroundColor: MyColors.primary,
+    backgroundColor: MyColors.primary500,
     borderColor: MyColors.opacity,
   },
   buttonActive: {
-    backgroundColor: MyColors.primary,
+    backgroundColor: MyColors.primary500,
     borderColor: MyColors.opacity,
   },
   cButton: {
@@ -48,11 +48,11 @@ const styles = StyleSheet.create({
     height: 35,
     lineHeight: 35,
     marginTop: 20,
-    backgroundColor: MyColors.primary,
+    backgroundColor: MyColors.primary500,
     borderColor: MyColors.opacity,
   },
   cButtonActive: {
-    backgroundColor: MyColors.primary,
+    backgroundColor: MyColors.primary500,
     borderColor: MyColors.opacity,
   },
 });

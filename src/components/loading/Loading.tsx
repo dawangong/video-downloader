@@ -5,7 +5,7 @@ import MyColors from '@/constants/colors';
 const Loading: React.FC<{ text?: string }> = ({ text = 'Loading...' }) => {
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color={MyColors.primary} />
+      <ActivityIndicator size="large" color={MyColors.primary500} />
       <Text style={styles.text}>{text}</Text>
     </View>
   );

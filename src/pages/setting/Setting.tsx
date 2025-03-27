@@ -119,7 +119,7 @@ const Setting = () => {
             <PickerView
               styles={{
                 wrappper: {
-                  backgroundColor: MyColors.primary,
+                  backgroundColor: MyColors.primary500,
                 },
               }}
               onChange={(v: any) => {

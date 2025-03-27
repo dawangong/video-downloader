@@ -7,7 +7,12 @@ import RNVideoInfo from 'react-native-video-info';
 import { toByteArray, fromByteArray } from 'base64-js';
 // import { createThumbnail } from 'react-native-create-thumbnail';
 
-import { VideoPattern, M3U8Pattern, PlayPattern } from '@/constants/rules';
+import {
+  VideoPattern,
+  M3U8Pattern,
+  PlayPattern,
+  VideoNamePattern,
+} from '@/constants/rules';
 
 // 验证链接
 export const validateLink = (link: string): boolean => VideoPattern.test(link);
@@ -17,8 +22,7 @@ export const m3u8Link = (link: string): boolean => M3U8Pattern.test(link);
 
 // 截取默认名称
 export const sliceVideoName = (link: string): string => {
-  console.log(link.match(VideoPattern));
-  const res = link.match(VideoPattern)?.[1];
+  const res = link.match(VideoNamePattern)?.[1];
   return res ? res : '';
 };
 
