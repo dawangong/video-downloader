@@ -315,6 +315,11 @@ export const getFileSizeByUrl = async (url: string): Promise<number> => {
     return 0;
   } catch (err) {
     console.error('Failed to get file size:', err);
+    if (err instanceof TypeError) {
+      console.error(
+        'Network request failed. Check URL and network connection.',
+      );
+    }
     return 0;
   }
 };
@@ -377,4 +382,30 @@ export const throttle = (func: Function, delay: number) => {
       func(...args);
     }
   };
+};
+
+export const extractProtocolAndDomain = (url: string): string => {
+  try {
+    const match = url.match(/^(https?:\/\/)?([^\/\s]+)/i);
+    if (match) {
+      return match[1] ? match[1] + match[2] : `http://${match[2]}`;
+    } else {
+      console.error('Invalid URL');
+      return '';
+    }
+  } catch (error) {
+    console.error('Invalid URL:', error);
+    return '';
+  }
+};
+
+export const ensureDomain = (url: string, domain: string): string => {
+  const trimmedUrl = url.trim();
+  const trimmedDomain = domain.trim();
+  // 如果 URL 以 http:// 或 https:// 开头，则认为已经包含域名
+  if (/^https?:\/\//i.test(trimmedUrl)) {
+    return trimmedUrl;
+  }
+  // 否则，拼接域名和 URL 路径
+  return `${trimmedDomain}/${trimmedUrl}`;
 };

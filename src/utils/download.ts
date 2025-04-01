@@ -1,8 +1,10 @@
 import RNFS from 'react-native-fs';
 import {
+  extractProtocolAndDomain,
   getFileNameAndExtension,
   getFileSizeByUrl,
   mergeTsFiles,
+  ensureDomain,
   deleteFolder,
   deleteFile,
   throttle,
@@ -236,7 +238,10 @@ export const downloadM3U8Video = async (
     const lines = m3u8Content.split('\n');
     for (const line of lines) {
       if (!line.startsWith('#') && line.trim() !== '') {
-        tsFileUrls.push(line.trim());
+        const temp = line.trim();
+        const prefix = extractProtocolAndDomain(url);
+        const tsUrl = ensureDomain(temp, prefix);
+        tsFileUrls.push(tsUrl);
       }
     }
 
