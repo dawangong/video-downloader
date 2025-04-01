@@ -55,7 +55,7 @@ const Download = () => {
       {contextHolder}
       <Header model="setting" />
       <View style={styles.wrapper}>
-        <Text style={styles.title}>下载页:</Text>
+        {/* <Text style={styles.title}>下载页:</Text> */}
         {downList.length > 0 ? (
           <FlatList
             style={styles.list}
@@ -95,7 +95,9 @@ const Download = () => {
             keyExtractor={item => item.id}
           />
         ) : (
-          <Text style={styles.empty}>暂无视频</Text>
+          <View style={{ height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={styles.empty}>暂无视频</Text>
+             </View>
         )}
       </View>
     </View>

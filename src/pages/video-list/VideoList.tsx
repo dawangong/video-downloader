@@ -132,8 +132,9 @@ const VideoList = () => {
             )}
             keyExtractor={item => item.id}
           />
-        ) : (
-          <Text style={styles.empty}>暂无视频</Text>
+        ) : (<View style={{ height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={styles.empty}>暂无视频</Text>
+             </View>
         )}
       </View>
     </View>

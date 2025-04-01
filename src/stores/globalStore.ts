@@ -79,7 +79,7 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
     const isM3u8 = m3u8Link(url);
     const downloadFn = isM3u8 ? downloadM3U8Video : downloadNormalVideo;
     addDownList(name, url);
-    await downloadFn(
+    const { success } = await downloadFn(
       url,
       name,
       dir,
@@ -88,13 +88,15 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
         updateDownList(_url, percentage, loadedMb, totalMb, speed, status);
       },
     );
-    const list = downList;
-    const dl = list.filter((it: any) => it.url !== url);
-    successFn(name);
-    updateCacheList();
-    set(() => ({
-      downList: dl,
-    }));
+    if (success) {
+      const list = downList;
+      const dl = list.filter((it: any) => it.url !== url);
+      successFn(name);
+      updateCacheList();
+      set(() => ({
+        downList: dl,
+      }));
+    }
   },
   addDownList(name, url) {
     const downList = get().downList;

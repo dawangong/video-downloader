@@ -204,6 +204,7 @@ export const downloadM3U8Video = async (
     let downloadedSize = 0; // 已下载大小（字节）
 
     const outputPath = `${directoryPath}/${fileName.replace('.m3u8', '.mp4')}`;
+    const throttledOnProgress = throttle(onProgress, 500);
 
     // 检查目录是否存在
     const directoryExists = await RNFS.exists(directoryPath);
@@ -239,9 +240,6 @@ export const downloadM3U8Video = async (
       }
     }
 
-    // 获取下载管理器中的信息
-    const { retryIndex, downloadedParts } = downloadManager.getRetryParams(url);
-
     // 创建一个临时目录来存储 TS 文件
     const tsDirectoryPath = `${directoryPath}/${fileName}_ts`;
     const tsDirectoryExists = await RNFS.exists(tsDirectoryPath);
@@ -257,11 +255,7 @@ export const downloadM3U8Video = async (
 
     // 下载所有的 TS 文件
     const tsDownloadPromises = [];
-    for (let i = retryIndex; i < tsFileUrls.length; i++) {
-      if (downloadedParts.has(i)) {
-        continue;
-      } // 如果该文件已经下载，跳过
-
+    for (let i = 0; i < tsFileUrls.length; i++) {
       const tsUrl = tsFileUrls[i];
       const tsFilePath = `${tsDirectoryPath}/${i}.ts`;
       tsDownloadPromises.push(
@@ -272,52 +266,7 @@ export const downloadM3U8Video = async (
               toFile: tsFilePath,
             });
 
-            // 使用 stats 方法来监听页面下载进度
-            const intervalId = setInterval(async () => {
-              try {
-                const stats = await RNFS.stat(tsFilePath);
-                if (stats.isFile()) {
-                  downloadedSize = stats.size;
-                  const percentage =
-                    totalSize > 0
-                      ? ((downloadedSize / totalSize) * 100).toFixed(1)
-                      : '0.0';
-                  const loadedMb = (downloadedSize / 1024 / 1024).toFixed(1);
-                  const totalMb = (totalSize / 1024 / 1024).toFixed(1);
-
-                  // 计算下载速度
-                  const currentTime = new Date().getTime();
-                  const timeDiff = currentTime - lastTime; // 时间差（毫秒）
-                  const loadedDiff = downloadedSize - lastLoaded; // 数据量差（字节）
-
-                  let speed = 0;
-                  if (timeDiff > 0 && loadedDiff > 0) {
-                    speed = loadedDiff / 1024 / 1024 / (timeDiff / 1000); // MB/s
-                  }
-
-                  // 更新上次的时间和已下载字节数
-                  lastTime = currentTime;
-                  lastLoaded = downloadedSize;
-
-                  // 使用节流机制限制调用频率
-                  throttle(() => {
-                    onProgress(
-                      url,
-                      percentage,
-                      loadedMb,
-                      totalMb,
-                      speed.toFixed(1),
-                      'downloading', // Pass 'downloading' status
-                    );
-                  }, 500); // 每 500ms 调用一次
-                }
-              } catch (err) {
-                // 文件可能还未创建
-              }
-            }, 1000);
-
             tsDownloadTask.promise.then(async result => {
-              clearInterval(intervalId);
               if (result.statusCode === 200) {
                 const fileStat = await RNFS.stat(tsFilePath);
                 downloadedSize = fileStat.size;
@@ -342,17 +291,14 @@ export const downloadM3U8Video = async (
                 lastTime = currentTime;
                 lastLoaded = downloadedSize;
 
-                // 使用节流机制限制调用频率
-                throttle(() => {
-                  onProgress(
-                    url,
-                    percentage,
-                    loadedMb,
-                    totalMb,
-                    speed.toFixed(1),
-                    'downloading', // Pass 'downloading' status
-                  );
-                }, 500); // 每 500ms 调用一次
+                throttledOnProgress(
+                  url,
+                  percentage,
+                  loadedMb,
+                  totalMb,
+                  speed.toFixed(1),
+                  'downloading', // Pass 'downloading' status
+                );
 
                 resolve();
               } else {

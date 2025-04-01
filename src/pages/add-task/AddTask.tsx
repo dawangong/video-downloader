@@ -184,7 +184,7 @@ const AddTask = (): React.JSX.Element => {
                     content: '链接解析中...',
                     duration: 0,
                   });
-                  await mockApi(1);
+                  await mockApi(0.5);
                   toastApi.remove(ld);
                   if (res) {
                     setAnalySis(true);
