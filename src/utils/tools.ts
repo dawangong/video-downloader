@@ -102,7 +102,7 @@ export const selectDownloadDirectory = async () => {
     const path = await convertContentUriToRealPath(uri);
     return path || null;
   } catch (err: any) {
-    console.error(err);
+    console.warn(err);
     return null;
   }
 };
@@ -155,7 +155,7 @@ export const deleteFile = async (path: string) => {
  * 删除文件夹（递归删除）
  * @param {string} folderPath - 要删除的文件夹路径
  */
-export const deleteFolder = async (folderPath: string) => {
+export const deleteFolder = async (folderPath: string, isDelFolder = true) => {
   try {
     // 检查路径是否存在
     const stats = await RNFS.stat(folderPath);
@@ -175,8 +175,8 @@ export const deleteFolder = async (folderPath: string) => {
       }
     }
     // 删除当前目录
-    await deleteFile(folderPath);
-    console.log(`Folder deleted successfully: ${folderPath}`);
+    isDelFolder && (await deleteFile(folderPath));
+    isDelFolder && console.log(`Folder deleted successfully: ${folderPath}`);
   } catch (error) {
     console.error(`Error deleting folder: ${folderPath}`, error);
     throw error; // 可以选择抛出错误，让调用者处理

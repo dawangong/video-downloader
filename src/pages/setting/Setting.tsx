@@ -13,7 +13,7 @@ import { Dialog, Provider, Button } from 'react-native-paper';
 import { Header } from '@/components/index';
 import useGlobalStore from '@/stores/globalStore';
 import selectColor from '@/constants/colors';
-import { selectDownloadDirectory } from '@/utils/tools';
+import { selectDownloadDirectory, deleteFolder } from '@/utils/tools';
 
 const Item = List.Item;
 
@@ -84,6 +84,19 @@ const Setting = () => {
                 }
               }}>
               <Text style={styles.text}>保存位置</Text>
+            </Item>
+            <Item
+              style={itemStyle}
+              extra="会删除上面目录全部视频"
+              onPress={async () => {
+                await deleteFolder(dir, false);
+                toastApi.success({
+                  content: '清空成功',
+                  position: 'center',
+                  mask: false,
+                });
+              }}>
+              <Text style={styles.text}>点我清空</Text>
             </Item>
             <Item
               style={itemStyle}
