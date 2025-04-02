@@ -1,8 +1,8 @@
 import RNFS from 'react-native-fs';
 import {
   getFileNameAndExtension,
+  mergeTsFilesStream,
   getVideoSize,
-  mergeTsFiles,
   deleteFolder,
   deleteFile,
   throttle,
@@ -202,9 +202,9 @@ export const downloadM3U8Video = async (
   try {
     let totalSize = 0;
     let downloadedSize = 0;
+    let downloadedUrls = [];
 
     const outputPath = `${directoryPath}/${fileName.replace('.m3u8', '.mp4')}`;
-    const throttledOnProgress = throttle(onProgress, 500);
 
     // 创建一个临时目录来存储 TS 文件
     const tsDirectoryPath = `${directoryPath}/${fileName}_ts`;
@@ -232,18 +232,25 @@ export const downloadM3U8Video = async (
               if (result.statusCode === 200) {
                 const fileStat = await RNFS.stat(tsFilePath);
                 downloadedSize += fileStat.size;
+                downloadedUrls.push(tsUrl);
+
                 const percentage =
-                  totalSize > 0
-                    ? ((downloadedSize / totalSize) * 100).toFixed(1)
+                  tsFileUrls.length > 0
+                    ? (
+                        (downloadedUrls.length / tsFileUrls.length) *
+                        100
+                      ).toFixed(1)
                     : '0.0';
                 const loadedMb = (downloadedSize / 1024 / 1024).toFixed(1);
                 const totalMb = (totalSize / 1024 / 1024).toFixed(1);
+                const speed = '后续实现';
 
-                throttledOnProgress(
+                onProgress(
                   url,
                   percentage,
                   loadedMb,
                   totalMb,
+                  speed,
                   'downloading', // Pass 'downloading' status
                 );
 
@@ -269,7 +276,7 @@ export const downloadM3U8Video = async (
       const numB = parseInt(b.match(/\d+/)[0], 10);
       return numA - numB;
     });
-    await mergeTsFiles(_tsFilePaths, outputPath);
+    await mergeTsFilesStream(_tsFilePaths, outputPath);
 
     // 清理临时文件
     await deleteFile(m3u8FilePath);

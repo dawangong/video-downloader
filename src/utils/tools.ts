@@ -4,8 +4,9 @@ import { pickDirectory } from '@react-native-documents/picker';
 import { format } from 'date-fns';
 import RNFS from 'react-native-fs';
 import RNVideoInfo from 'react-native-video-info';
-import { toByteArray, fromByteArray } from 'base64-js';
+// import { toByteArray, fromByteArray } from 'base64-js';
 // import { createThumbnail } from 'react-native-create-thumbnail';
+import RNBlobUtil from 'react-native-blob-util';
 
 import {
   VideoPattern,
@@ -334,39 +335,53 @@ export const getM3u8Size = async (url: string, m3u8FilePath: string) => {
   return tsFileUrls;
 };
 
-export async function mergeTsFiles(tsFilePaths: any, outputFilePath: string) {
-  // 存放解码后的 Uint8Array 数组
-  const arrays = [];
+async function readFileChunks(filePath: string, chunkSize = 65536) {
+  const reader = await RNBlobUtil.fs.readStream(filePath, 'base64', chunkSize);
+  return new Promise((resolve, reject) => {
+    const chunks: any = [];
+    // 注册数据到达事件
+    reader.onData(chunk => {
+      chunks.push(chunk);
+    });
+    // 注册错误事件
+    reader.onError(error => {
+      reject(error);
+    });
+    // 注册流结束事件
+    reader.onEnd(() => {
+      resolve(chunks);
+    });
+    // 开启流（在事件监听注册后调用）
+    reader.open();
+  });
+}
 
-  for (const tsFilePath of tsFilePaths) {
-    // 读取 Base64 格式内容
-    const base64Data = await RNFS.readFile(tsFilePath, 'base64');
-    // 解码为 Uint8Array
-    const byteArray = toByteArray(base64Data);
-    arrays.push(byteArray);
+export async function mergeTsFilesStream(
+  tsFilePaths: any,
+  outputFilePath: string,
+) {
+  // 并发读取所有文件的块数据
+  const allChunks = await Promise.all(
+    tsFilePaths.map((filePath: string) => readFileChunks(filePath)),
+  );
+
+  // 获取写入流对象。注意：writeStream 不需要调用 open() 方法。
+  const writer = await RNBlobUtil.fs.writeStream(
+    outputFilePath,
+    'base64',
+    false,
+  );
+
+  // 按 tsFilePaths 顺序依次写入对应文件的所有块
+  for (const fileChunks of allChunks) {
+    for (const chunk of fileChunks) {
+      await writer.write(chunk);
+    }
   }
 
-  // 计算拼接后总长度
-  const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0);
-  const combined = new Uint8Array(totalLength);
-
-  // 合并所有 Uint8Array
-  let offset = 0;
-  for (const arr of arrays) {
-    combined.set(arr, offset);
-    offset += arr.length;
-  }
-
-  // 将合并后的二进制数据重新编码为 Base64
-  const finalBase64 = fromByteArray(combined);
-
-  try {
-    // 写入文件
-    await RNFS.writeFile(outputFilePath, finalBase64, 'base64');
-    console.log('合并写入成功', outputFilePath);
-  } catch (err) {
-    console.error(err);
-  }
+  // 关闭写入流
+  await writer.close();
+  console.log('并发读取后流式合并写入成功', outputFilePath);
 }
 
 // 解析视频文件名和扩展名
