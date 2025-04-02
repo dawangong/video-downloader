@@ -1,10 +1,8 @@
 import RNFS from 'react-native-fs';
 import {
-  extractProtocolAndDomain,
   getFileNameAndExtension,
-  getFileSizeByUrl,
+  getVideoSize,
   mergeTsFiles,
-  ensureDomain,
   deleteFolder,
   deleteFile,
   throttle,
@@ -197,53 +195,16 @@ export const downloadM3U8Video = async (
   url: string,
   fileName: string,
   directoryPath: string,
+  m3u8FilePath: string,
+  tsFileUrls: Array<string>,
   onProgress: OnProgressCallback,
 ) => {
   try {
-    let lastTime = 0; // 上一次时间戳
-    let lastLoaded = 0; // 上一次已下载的字节数
-    let totalSize = 0; // 总大小（字节）
-    let downloadedSize = 0; // 已下载大小（字节）
+    let totalSize = 0;
+    let downloadedSize = 0;
 
     const outputPath = `${directoryPath}/${fileName.replace('.m3u8', '.mp4')}`;
     const throttledOnProgress = throttle(onProgress, 500);
-
-    // 检查目录是否存在
-    const directoryExists = await RNFS.exists(directoryPath);
-    if (!directoryExists) {
-      await RNFS.mkdir(directoryPath); // 创建目录
-    }
-
-    // 下载 m3u8 文件
-    const m3u8FilePath = `${directoryPath}/${fileName}_temp.m3u8`;
-    const m3u8DownloadTask = RNFS.downloadFile({
-      fromUrl: url,
-      toFile: m3u8FilePath,
-      begin: res => {
-        console.log('Started downloading m3u8 file', res);
-        lastTime = new Date().getTime(); // 初始化时间戳
-        lastLoaded = 0; // 初始化已下载字节数
-      },
-    });
-
-    const m3u8DownloadResult = await m3u8DownloadTask.promise;
-    if (m3u8DownloadResult.statusCode !== 200) {
-      onProgress(url, '0.0', '0.0', '0.0', '0.0', 'error'); // Report error
-      return { success: false, error: 'Failed to download m3u8 file' };
-    }
-
-    // 解析 m3u8 文件，获取 TS 文件的链接
-    const m3u8Content = await RNFS.readFile(m3u8FilePath, 'utf8');
-    const tsFileUrls = [];
-    const lines = m3u8Content.split('\n');
-    for (const line of lines) {
-      if (!line.startsWith('#') && line.trim() !== '') {
-        const temp = line.trim();
-        const prefix = extractProtocolAndDomain(url);
-        const tsUrl = ensureDomain(temp, prefix);
-        tsFileUrls.push(tsUrl);
-      }
-    }
 
     // 创建一个临时目录来存储 TS 文件
     const tsDirectoryPath = `${directoryPath}/${fileName}_ts`;
@@ -252,11 +213,7 @@ export const downloadM3U8Video = async (
       await RNFS.mkdir(tsDirectoryPath);
     }
 
-    // 获取所有 TS 文件的大小并计算总大小
-    for (const tsUrl of tsFileUrls) {
-      const tsFileSize = await getFileSizeByUrl(tsUrl);
-      totalSize += tsFileSize;
-    }
+    totalSize = await getVideoSize(tsFileUrls);
 
     // 下载所有的 TS 文件
     const tsDownloadPromises = [];
@@ -264,7 +221,7 @@ export const downloadM3U8Video = async (
       const tsUrl = tsFileUrls[i];
       const tsFilePath = `${tsDirectoryPath}/${i}.ts`;
       tsDownloadPromises.push(
-        new Promise<void>(async resolve => {
+        new Promise<void>(async (resolve, reject) => {
           try {
             const tsDownloadTask = RNFS.downloadFile({
               fromUrl: tsUrl,
@@ -274,7 +231,7 @@ export const downloadM3U8Video = async (
             tsDownloadTask.promise.then(async result => {
               if (result.statusCode === 200) {
                 const fileStat = await RNFS.stat(tsFilePath);
-                downloadedSize = fileStat.size;
+                downloadedSize += fileStat.size;
                 const percentage =
                   totalSize > 0
                     ? ((downloadedSize / totalSize) * 100).toFixed(1)
@@ -282,36 +239,21 @@ export const downloadM3U8Video = async (
                 const loadedMb = (downloadedSize / 1024 / 1024).toFixed(1);
                 const totalMb = (totalSize / 1024 / 1024).toFixed(1);
 
-                // 计算下载速度
-                const currentTime = new Date().getTime();
-                const timeDiff = currentTime - lastTime; // 时间差（毫秒）
-                const loadedDiff = downloadedSize - lastLoaded; // 数据量差（字节）
-
-                let speed = 0;
-                if (timeDiff > 0 && loadedDiff > 0) {
-                  speed = loadedDiff / 1024 / 1024 / (timeDiff / 1000); // MB/s
-                }
-
-                // 更新上次的时间和已下载字节数
-                lastTime = currentTime;
-                lastLoaded = downloadedSize;
-
                 throttledOnProgress(
                   url,
                   percentage,
                   loadedMb,
                   totalMb,
-                  speed.toFixed(1),
                   'downloading', // Pass 'downloading' status
                 );
 
                 resolve();
               } else {
-                resolve();
+                reject(result);
               }
             });
           } catch (err) {
-            resolve();
+            reject(err);
           }
         }),
       );

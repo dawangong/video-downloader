@@ -3,7 +3,12 @@ import { Input, Button, Toast, WingBlank } from '@ant-design/react-native';
 import { StyleSheet, useColorScheme, View, Text } from 'react-native';
 
 import { Header } from '@/components/index';
-import { validateLink, mockApi, sliceVideoName } from '@/utils/tools';
+import {
+  validateLink,
+  sliceVideoName,
+  m3u8Link,
+  parseM3U8,
+} from '@/utils/tools';
 import useGlobalStore from '@/stores/globalStore';
 import selectColor from '@/constants/colors';
 
@@ -72,6 +77,7 @@ const AddTask = (): React.JSX.Element => {
   const [fileLink, setFileLink] = useState('');
   const [analySis, setAnalySis] = useState(false);
   const [fileName, setFileName] = useState('');
+  const [m3u8Info, setM3u8Info] = useState<any>();
 
   const [toastApi, contextHolder] = Toast.useToast();
 
@@ -149,14 +155,20 @@ const AddTask = (): React.JSX.Element => {
                       });
                       return false;
                     }
-
-                    downloadVideo(fileLink, fileName, (name: string) => {
-                      toastApi.success({
-                        content: `${name}下载完成`,
-                        position: 'center',
-                        mask: false,
-                      });
-                    });
+                    const { m3u8FilePath, tsFileUrls } = m3u8Info;
+                    downloadVideo(
+                      fileLink,
+                      fileName,
+                      m3u8FilePath,
+                      tsFileUrls,
+                      (name: string) => {
+                        toastApi.success({
+                          content: `${name}下载完成`,
+                          position: 'center',
+                          mask: false,
+                        });
+                      },
+                    );
 
                     toastApi.success({
                       content: '新下载任务添加成功',
@@ -179,23 +191,33 @@ const AddTask = (): React.JSX.Element => {
               style={[styles.button]}
               activeStyle={styles.buttonActive}
               onPress={async () => {
-                if (validateLink(fileLink)) {
+                if (m3u8Link(fileLink)) {
                   const ld = toastApi.loading({
                     content: '链接解析中...',
                     duration: 0,
                   });
-                  await mockApi(0.5);
-                  toastApi.remove(ld);
-                  if (res) {
-                    setAnalySis(true);
-                    const name = sliceVideoName(fileLink);
+                  const name = sliceVideoName(fileLink);
+                  try {
+                    const [m3u8FilePath, tsFileUrls] = await parseM3U8(
+                    fileLink,
+                    name,
+                    dir,
+                  );
+                    setM3u8Info({
+                      m3u8FilePath,
+                      tsFileUrls,
+                    });
+                    console.log('解析完成', m3u8FilePath, tsFileUrls);
+                    toastApi.remove(ld);
                     setFileName(name);
-                  } else {
+                    setAnalySis(true);
+                  } catch(err) {
                     toastApi.fail({
-                      content: '链接解析失败',
+                      content: '403',
                       position: 'center',
                       mask: false,
                     });
+                    toastApi.remove(ld);
                   }
                 } else {
                   toastApi.fail({

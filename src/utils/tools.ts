@@ -305,23 +305,33 @@ const getFileModificationTime = async (filePath: string) => {
 };
 
 // 替代 RNFS.getFileSize 的方法
-export const getFileSizeByUrl = async (url: string): Promise<number> => {
-  try {
-    const response = await fetch(url, { method: 'HEAD' });
-    const contentLength = response.headers.get('content-length');
-    if (contentLength) {
-      return parseInt(contentLength, 10);
+export async function getVideoSize(segmentUrls: Array<string>) {
+  // 对每个分片发起 HEAD 请求并获取 Content-Length
+  const sizePromises = segmentUrls.map(async url => {
+    const headResp = await fetch(url, { method: 'HEAD' });
+    const length = headResp.headers.get('Content-Length');
+    return length ? parseInt(length, 10) : 0;
+  });
+
+  const sizes = await Promise.all(sizePromises);
+  const totalSize = sizes.reduce((acc, size) => acc + size, 0);
+  console.log('totalSize', totalSize);
+  return totalSize; // 单位：字节
+}
+
+// 解析 m3u8 文件，获取 TS 文件的链接
+export const getM3u8Size = async (url: string, m3u8FilePath: string) => {
+  const m3u8Content = await RNFS.readFile(m3u8FilePath, 'utf8');
+  const tsFileUrls = [];
+  const lines = m3u8Content.split('\n');
+  for (const line of lines) {
+    if (!line.startsWith('#') && line.trim() !== '') {
+      const temp = line.trim();
+      const tsUrl = generateUrl(url, temp);
+      tsFileUrls.push(tsUrl);
     }
-    return 0;
-  } catch (err) {
-    console.error('Failed to get file size:', err);
-    if (err instanceof TypeError) {
-      console.error(
-        'Network request failed. Check URL and network connection.',
-      );
-    }
-    return 0;
   }
+  return tsFileUrls;
 };
 
 export async function mergeTsFiles(tsFilePaths: any, outputFilePath: string) {
@@ -384,28 +394,61 @@ export const throttle = (func: Function, delay: number) => {
   };
 };
 
-export const extractProtocolAndDomain = (url: string): string => {
-  try {
-    const match = url.match(/^(https?:\/\/)?([^\/\s]+)/i);
-    if (match) {
-      return match[1] ? match[1] + match[2] : `http://${match[2]}`;
-    } else {
-      console.error('Invalid URL');
-      return '';
-    }
-  } catch (error) {
-    console.error('Invalid URL:', error);
-    return '';
+export const generateUrl = (url1: string, url2: string): string => {
+  // 提取输入1的路径部分
+  const pathRegex = /(.*)\/[^/]+$/;
+  const pathMatch = url1.match(pathRegex);
+  if (!pathMatch) {
+    throw new Error('Invalid URL1 format');
   }
+  const basePath = pathMatch[1];
+
+  // 提取输入2的文件名和查询参数
+  const fileRegex = /^([^?]+)\?(.*)$/;
+  const fileMatch = url2.match(fileRegex);
+  if (!fileMatch) {
+    throw new Error('Invalid URL2 format');
+  }
+  const fileName = fileMatch[1];
+  const queryParams = fileMatch[2];
+
+  // 构建新的URL
+  let newUrl = `${basePath}/${fileName}?${queryParams}`;
+
+  // 如果输入1有查询参数，保留输入1的查询参数
+  const searchRegex = /(.*)\?(.*)/;
+  const searchMatch = url1.match(searchRegex);
+  if (searchMatch) {
+    const url1Params = searchMatch[2];
+    newUrl = `${basePath}/${fileName}?${url1Params}&${queryParams}`;
+  }
+
+  return newUrl;
 };
 
-export const ensureDomain = (url: string, domain: string): string => {
-  const trimmedUrl = url.trim();
-  const trimmedDomain = domain.trim();
-  // 如果 URL 以 http:// 或 https:// 开头，则认为已经包含域名
-  if (/^https?:\/\//i.test(trimmedUrl)) {
-    return trimmedUrl;
+export const parseM3U8 = async (
+  url: string,
+  fileName: string,
+  directoryPath: string,
+): Promise<[string, Array<string>]> => {
+  // 检查目录是否存在
+  const directoryExists = await RNFS.exists(directoryPath);
+  if (!directoryExists) {
+    await RNFS.mkdir(directoryPath); // 创建目录
   }
-  // 否则，拼接域名和 URL 路径
-  return `${trimmedDomain}/${trimmedUrl}`;
+
+  // 下载 m3u8 文件
+  const m3u8FilePath = `${directoryPath}/${fileName}_temp.m3u8`;
+  const m3u8DownloadTask = RNFS.downloadFile({
+    fromUrl: url,
+    toFile: m3u8FilePath,
+    begin: res => {
+      console.log('Started downloading m3u8 file', res);
+    },
+  });
+
+  await m3u8DownloadTask.promise;
+  const tsFileUrls = await getM3u8Size(url, m3u8FilePath);
+
+  return [m3u8FilePath, tsFileUrls];
 };

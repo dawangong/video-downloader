@@ -35,7 +35,7 @@ interface GlobalState {
   setMaxTask(v: number): void;
   setDirAndStorage(dir: string): void;
   setMaxTaskAndStorage(v: number): void;
-  downloadVideo(url: string, name: string, successFn: any): void;
+  downloadVideo(url: string, name: string, m3u8FilePath: string, tsFileUrls: Array<string>, successFn: any): void;
   addDownList(url: string, name: string): void;
   setCacheList(list: any): void;
   updateCacheList(): void;
@@ -73,29 +73,38 @@ const useGlobalStore = create<GlobalState>((set: any, get: any) => ({
     }));
     saveData('maxTask', v);
   },
-  async downloadVideo(url: string, name: string, successFn: any) {
+  async downloadVideo(
+    url,
+    name,
+    m3u8FilePath,
+    tsFileUrls,
+    successFn,
+  ) {
     const { dir, downList, updateDownList, addDownList, updateCacheList } =
       get();
     const isM3u8 = m3u8Link(url);
-    const downloadFn = isM3u8 ? downloadM3U8Video : downloadNormalVideo;
-    addDownList(name, url);
-    const { success } = await downloadFn(
-      url,
-      name,
-      dir,
-      (_url, percentage, loadedMb, totalMb, speed, status) => {
-        console.log('info', percentage, loadedMb, totalMb, speed);
-        updateDownList(_url, percentage, loadedMb, totalMb, speed, status);
-      },
-    );
-    if (success) {
-      const list = downList;
-      const dl = list.filter((it: any) => it.url !== url);
-      successFn(name);
-      updateCacheList();
-      set(() => ({
-        downList: dl,
-      }));
+    if (isM3u8) {
+      addDownList(name, url);
+      const { success } = await downloadM3U8Video(
+        url,
+        name,
+        dir,
+        m3u8FilePath,
+        tsFileUrls,
+        (_url, percentage, loadedMb, totalMb, speed, status) => {
+          console.log('info', percentage, loadedMb, totalMb, speed);
+          updateDownList(_url, percentage, loadedMb, totalMb, speed, status);
+        },
+      );
+      if (success) {
+        const list = downList;
+        const dl = list.filter((it: any) => it.url !== url);
+        successFn(name);
+        updateCacheList();
+        set(() => ({
+          downList: dl,
+        }));
+      }
     }
   },
   addDownList(name, url) {
