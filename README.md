@@ -28,5 +28,6 @@ bundle exec pod install
 
   - cd android
   - ./gradlew assembleRelease
+  - android/app/build/outputs/apk
 
 - ios
